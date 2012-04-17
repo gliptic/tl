@@ -55,7 +55,6 @@ TL_TREAP_API uint32_t tl_treap_genrand_int32(treap* self);
 		other = tl_treap_getnode(type,sub, (p_ = p_->ch[dir_])); \
 		dir_ = (gt); \
 	} \
-	(el) = NULL; \
 	tl_treap_restore_heap(p_, el_, dir_); \
 } while(0)
 

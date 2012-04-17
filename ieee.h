@@ -107,7 +107,7 @@ TL_INLINE double gM(double x, double y) {
 
 TL_INLINE double gD(double x, double y) {
 #if TL_MSVCPP
-	/* Similarily to the case with gM, we do this
+	/* Similarly to the case with gM, we do this
 	** to avoid incorrectly rounded subnormals. */
 	double r;
 
@@ -380,24 +380,8 @@ inline bool operator!=(rdouble a, rdouble b)
 inline bool operator==(rdouble a, rdouble b)
 { return a.value == b.value; }
 
-
 inline rdouble sqrt(rdouble x)
 { return gSqrt(x.value); }
-
-inline rdouble log(rdouble x)
-{ return fd_log(x.value); }
-
-inline rdouble cos(rdouble x)
-{ return fd_cos(x.value); }
-
-inline rdouble sin(rdouble x)
-{ return fd_sin(x.value); }
-
-inline rdouble atan2(rdouble a, rdouble b)
-{ return fd_atan2(a.value, b.value); }
-
-inline rdouble floor(rdouble x)
-{ return fd_floor(x.value); }
 
 #if !TL_X87
 
@@ -477,21 +461,6 @@ TL_FORCE_INLINE bool operator==(rfloat const& a, rfloat const& b)
 
 TL_FORCE_INLINE rfloat sqrt(rfloat x)
 { return gSqrtf(x.value); }
-
-TL_FORCE_INLINE rfloat log(rfloat x)
-{ return gdtof(fd_log(x.value)); }
-
-TL_FORCE_INLINE rfloat cos(rfloat x)
-{ return gdtof(fd_cos(x.value)); }
-
-TL_FORCE_INLINE rfloat sin(rfloat x)
-{ return gdtof(fd_sin(x.value)); }
-
-TL_FORCE_INLINE rfloat atan2(rfloat a, rfloat b)
-{ return gdtof(fd_atan2(a.value, b.value)); }
-
-TL_FORCE_INLINE rfloat floor(rfloat x)
-{ return gdtof(fd_floor(x.value)); }
 
 #endif
 
