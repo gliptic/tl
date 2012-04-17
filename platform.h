@@ -102,7 +102,7 @@
 #endif
 
 /* Whether or not the compiler may generate x87 code for floating point calculations.
-** TL_X87 == 1 means the gvl IEEE support functions will take measures to work-around
+** TL_X87 == 1 means the tl IEEE support functions will take measures to work-around
 ** x87 issues that make results non-reproducible. */
 #if !defined(TL_X87)
 # if TL_X86
