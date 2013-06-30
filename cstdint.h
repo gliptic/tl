@@ -1,13 +1,11 @@
 #ifndef UUID_B6BA276BE4584C6984F223B4F0C5267F
 #define UUID_B6BA276BE4584C6984F223B4F0C5267F
 
-// NOTE: Keep this useable from C
-
 #include <limits.h>
 
 #include "platform.h"
 
-#if TL_STDC >= 199901L
+#if TL_STDC >= 199901L || _MSC_VER > 1600
 #include <stdint.h>
 #elif TL_GCC
 #include <inttypes.h>

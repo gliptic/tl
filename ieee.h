@@ -57,8 +57,8 @@ extern "C" {
 */
 TL_IEEE754_API void tl_init_ieee();
 
-extern unsigned char const tl_scaleup[10];
-extern unsigned char const tl_scaledown[10];
+TL_API unsigned char const tl_scaleup[10];
+TL_API unsigned char const tl_scaledown[10];
 
 #if TL_X87
 
