@@ -174,5 +174,7 @@
    extern void TL_ASSERT_NAME(__LINE__)(int STATIC_ASSERTION_FAILED[(cond)?1:-1])
 #endif
 
+#define TL_U64x(hi, lo) (((uint64_t)0x##hi << 32) + (uint64_t)0x##lo)
+
 #endif // UUID_728FDBF69FF04497D59A6F8E9506DF64
 

@@ -44,27 +44,32 @@ typedef struct tl_byte_sink_pushable {
 #define tl_bs_check_pull(source) ((source)->buf != (source)->buf_end ? 0 : (source)->pull(source))
 #define tl_bs_pull_def0(source) (tl_bs_check_pull(source) ? 0 : tl_bs_unsafe_get(source))
 
-TL_INLINE uint16 tl_bs_pull16_def0(tl_byte_source_pullable* self) {
+TL_INLINE uint16 tl_bs_pull16_def0(tl_byte_source_pullable* self)
+{
 	uint8 x = tl_bs_pull_def0(self);
 	return (x << 8) + tl_bs_pull_def0(self);
 }
 
-TL_INLINE uint32 tl_bs_pull32_def0(tl_byte_source_pullable* self) {
+TL_INLINE uint32 tl_bs_pull32_def0(tl_byte_source_pullable* self)
+{
 	uint16 x = tl_bs_pull16_def0(self);
 	return (x << 16) + tl_bs_pull16_def0(self);
 }
 
-TL_INLINE uint16 tl_bs_pull16_def0_le(tl_byte_source_pullable* self) {
+TL_INLINE uint16 tl_bs_pull16_def0_le(tl_byte_source_pullable* self)
+{
 	uint8 x = tl_bs_pull_def0(self);
 	return (tl_bs_pull_def0(self) << 8) + x;
 }
 
-TL_INLINE uint32 tl_bs_pull32_def0_le(tl_byte_source_pullable* self) {
+TL_INLINE uint32 tl_bs_pull32_def0_le(tl_byte_source_pullable* self)
+{
 	uint16 x = tl_bs_pull16_def0_le(self);
 	return (tl_bs_pull16_def0_le(self) << 16) + x;
 }
 
-TL_INLINE void tl_bs_pull_skip(tl_byte_source_pullable* self, int n) {
+TL_INLINE void tl_bs_pull_skip(tl_byte_source_pullable* self, int n)
+{
 	// TODO: Optimize
 	int i;
 	for(i = 0; i < n; ++i)
@@ -84,22 +89,26 @@ TL_STREAM_API void tl_bs_free(tl_byte_source_pullable* src);
 #define tl_bs_flush(sink)         if((sink)->out != (sink)->out_start) (sink)->push(sink); else (void)0
 #define tl_bs_unsafe_put(sink, b) (*(sink)->out++ = (b))
 
-TL_INLINE void tl_bs_push16(tl_byte_sink_pushable* self, uint16 x) {
+TL_INLINE void tl_bs_push16(tl_byte_sink_pushable* self, uint16 x)
+{
 	tl_bs_push(self, (x>>8));
 	tl_bs_push(self, x & 0xff);
 }
 
-TL_INLINE void tl_bs_push32(tl_byte_sink_pushable* self, uint32 x) {
+TL_INLINE void tl_bs_push32(tl_byte_sink_pushable* self, uint32 x)
+{
 	tl_bs_push16(self, (x>>16) & 0xffff);
 	tl_bs_push16(self, x & 0xffff);
 }
 
-TL_INLINE void tl_bs_push16_le(tl_byte_sink_pushable* self, uint16 x) {
+TL_INLINE void tl_bs_push16_le(tl_byte_sink_pushable* self, uint16 x)
+{
 	tl_bs_push(self, x & 0xff);
 	tl_bs_push(self, (x>>8));
 }
 
-TL_INLINE void tl_bs_push32_le(tl_byte_sink_pushable* self, uint32 x) {
+TL_INLINE void tl_bs_push32_le(tl_byte_sink_pushable* self, uint32 x)
+{
 	tl_bs_push16_le(self, x & 0xffff);
 	tl_bs_push16_le(self, (x>>16) & 0xffff);
 }

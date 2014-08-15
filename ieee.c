@@ -1,5 +1,6 @@
 #include "ieee.h"
 
+
 #if TL_MSVCPP
 #include <fpieee.h>
 #include <excpt.h>
@@ -16,14 +17,16 @@
 //#if TL_X87
 
 // Exact 80-bit floating point little endian representation of 2^(16383 - 1023)
-unsigned char const tl_scaleup[10] = {0,0,0,0,0,0,0,128,255,123};
+extern unsigned char const scaleup[10] = {0,0,0,0,0,0,0,128,255,123};
 
 // Exact 80-bit floating point little endian representation of 1 / 2^(16383 - 1023)
-unsigned char const tl_scaledown[10] = {0,0,0,0,0,0,0,128,255,3};
+extern unsigned char const scaledown[10] = {0,0,0,0,0,0,0,128,255,3};
+
 
 //#endif
 
-void tl_init_ieee() {
+void gvl_init_ieee()
+{
 #if !TL_X86_64
 #if TL_MSVCPP || (TL_GCC && TL_WIN32)
 // Nothing needs to be done for VC++ by default, but let's do it anyway to be sure.
@@ -37,4 +40,3 @@ void tl_init_ieee() {
 #endif
 #endif
 }
-
