@@ -3,6 +3,7 @@
 
 tl_treap_node tl_treap_null = {{&tl_treap_null, &tl_treap_null}, NULL, 0xffffffff};
 
+/* TODO: Separate xorshift generator */
 uint32_t tl_treap_genrand_int32(treap* self) {
   uint32_t t = self->x ^ (self->x << 11);
   self->x = self->y; self->y = self->z; self->z = self->w;
@@ -42,6 +43,7 @@ void tl_treap_restore_heap(tl_treap_node* p, tl_treap_node* el, int dir) {
 void tl_treap_remove(treap* t, tl_treap_node* el) {
 	tl_treap_node *p = el->parent, *bubble;
 	int dir = (p->ch[0] != el);
+	(void)t; /* Unreferenced */
 
 	while(1) {
 		int dir2 = (el->ch[0]->prio <= el->ch[1]->prio);

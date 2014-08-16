@@ -4,6 +4,7 @@
 #include "config.h"
 #include "platform.h"
 #include "cstdint.h"
+#include "vector.h"
 #include <stddef.h>
 
 typedef struct tl_byte_source {
@@ -119,5 +120,9 @@ TL_STREAM_API uint64 tl_bs_tell_sink(tl_byte_sink_pushable* self);
 TL_STREAM_API void   tl_bs_init_sink(tl_byte_sink_pushable* self);
 TL_STREAM_API int    tl_bs_file_sink(tl_byte_sink_pushable* sink, char const* path);
 TL_STREAM_API void   tl_bs_free_sink(tl_byte_sink_pushable* self);
+
+/* Memory stream */
+TL_STREAM_API int       tl_bs_mem_sink(tl_byte_sink_pushable* sink);
+TL_STREAM_API tl_vector tl_bs_mem_release_vector(tl_byte_sink_pushable* sink);
 
 #endif // UUID_F3740CE70E6B45893FAD7C9B2BC6A2C0

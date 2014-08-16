@@ -16,6 +16,7 @@
 #undef FDLIBM_INTERNAL
 #define FDLIBM_INTERNAL static
 #include "ieee.c"
+
 #include "fdlibm/e_rem_pio2.c"
 #include "fdlibm/k_cos.c"
 #include "fdlibm/k_rem_pio2.c"
@@ -72,3 +73,14 @@
 #include "fdlibm/w_sqrt.c"
 
 #include "vorbis.c"
+
+#include "region.c"
+#include "stringset.c"
+#include "stream.c"
+#include "pairing_heap.c"
+
+#include "codec/codec_impl.h"
+
+#include "test/test.c"
+#include "test/pairing_heap.c"
+#include "test/treap.c"
