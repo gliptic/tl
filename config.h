@@ -91,6 +91,7 @@
 
 #ifndef TL_RIFF_API
 #define TL_RIFF_API
+#endif
 
 #ifndef TL_REGION_API
 #define TL_REGION_API
@@ -98,6 +99,7 @@
 
 #ifndef TL_STREAM_API
 #define TL_STREAM_API
+#endif
 
 #ifndef TL_CODEC_API
 #define TL_CODEC_API
