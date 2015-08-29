@@ -1,8 +1,8 @@
 #ifndef UUID_FF8E2E3BBF3946A7E57C25A214D47E20
 #define UUID_FF8E2E3BBF3946A7E57C25A214D47E20
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
+//#include <assert.h>
+//#include <string.h>
+//#include <stdlib.h>
 #include "stream.h"
 #include "inflate.h"
 #include "coro.h"

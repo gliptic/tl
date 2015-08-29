@@ -1,7 +1,8 @@
 #include "rectpack.h"
 
-#include <malloc.h>
-#include <assert.h>
+//#include <malloc.h>
+#include "std.h"
+//#include <assert.h>
 
 void tl_rectpack_init(tl_rectpack* self, tl_recti r)
 {
@@ -80,7 +81,7 @@ static void propagate_largest_(tl_rectpack* self)
 static tl_rectpack* rectpack_create(tl_rectpack* parent, int x1, int y1, int x2, int y2)
 {
 	tl_recti r;
-	tl_rectpack* self = malloc(sizeof(tl_rectpack));
+	tl_rectpack* self = memalloc(sizeof(tl_rectpack));
 	r.x1 = x1;
 	r.y1 = y1;
 	r.x2 = x2;
@@ -169,8 +170,8 @@ void tl_rectpack_remove(tl_rectpack* self, tl_packed_rect* r)
 
 void tl_rectpack_clear(tl_rectpack* self)
 {
-	if(self->ch[0]) { tl_rectpack_deinit(self->ch[0]); free(self->ch[0]); self->ch[0] = NULL; }
-	if(self->ch[1]) { tl_rectpack_deinit(self->ch[1]); free(self->ch[1]); self->ch[1] = NULL; }
+	if(self->ch[0]) { tl_rectpack_deinit(self->ch[0]); memfree(self->ch[0]); self->ch[0] = NULL; }
+	if(self->ch[1]) { tl_rectpack_deinit(self->ch[1]); memfree(self->ch[1]); self->ch[1] = NULL; }
 	// propagate largest
 	self->occupied = 0;
 	propagate_largest_(self);

@@ -2,7 +2,7 @@
 
 #include "../bits.h"
 #include "../algo.h"
-#include <assert.h>
+#include "../std.h"
 
 unsigned tl_polar_code_lengths(tl_ord_freq const* symbols, uint32 num_syms, uint8* code_sizes)
 {

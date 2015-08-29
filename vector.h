@@ -2,7 +2,8 @@
 #define UUID_C8B889F6B0254CE3F7AE58B920794A20
 
 #include <stddef.h>
-#include <stdlib.h>
+//#include <stdlib.h>
+#include "std.h"
 
 #include <assert.h>
 #include "cstdint.h"
@@ -16,7 +17,7 @@
 	if(n_ > SIZE_MAX/sizeof(t)) \
 		v_->impl = NULL; \
 	else \
-		v_->impl = malloc(sizeof(t)*(n_)); \
+		v_->impl = memalloc(sizeof(t)*(n_)); \
 } while(0)
 
 #define tl_vector_new_empty(v) do { \
@@ -70,8 +71,8 @@
 	size_t newcap_ = (newcap); \
 	if(newcap_ > e_v_->cap) { \
 		if(newcap_ > SIZE_MAX/sizeof(t) \
-		|| !(new_impl_ = realloc(e_v_->impl, sizeof(t)*newcap_))) { \
-			free(e_v_->impl); new_impl_ = NULL; \
+		|| !(new_impl_ = memrealloc(e_v_->impl, sizeof(t)*newcap_, sizeof(t)*e_v_->cap))) { \
+			memfree(e_v_->impl); new_impl_ = NULL; \
 		} \
 		e_v_->impl = new_impl_; \
 		e_v_->cap = newcap_; \
@@ -83,8 +84,8 @@
 	void* new_impl_; \
 	size_t newcap_ = e_v_->size * 2 + (extra); \
 	if(newcap_ > SIZE_MAX/sizeof(t) \
-	|| !(new_impl_ = realloc(e_v_->impl, sizeof(t)*newcap_))) { \
-		free(e_v_->impl); new_impl_ = NULL; \
+	|| !(new_impl_ = memrealloc(e_v_->impl, sizeof(t)*newcap_, sizeof(t)*e_v_->cap))) { \
+		memfree(e_v_->impl); new_impl_ = NULL; \
 	} \
 	e_v_->impl = new_impl_; \
 	e_v_->cap = newcap_; \

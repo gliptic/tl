@@ -1,9 +1,18 @@
 #include "truetype.h"
 #include "cstdint.h"
 #include "bits.h"
+#include "memory.h"
+#include "std.h"
 
 typedef char tl_tt__check_size32[sizeof(int32_t)==4 ? 1 : -1];
 typedef char tl_tt__check_size16[sizeof(int16_t)==2 ? 1 : -1];
+
+#define STBTT_malloc(x,u) memalloc(x)
+#define STBTT_free(x,u)   memfree(x)
+#define STBTT_assert(x) assert(x)
+#define STBTT_strlen(x) slen(x)
+#define STBTT_memcpy    mcpy
+#define STBTT_memset    mset
 
 // #define your own STBTT_sort() to override this to avoid qsort
 #ifndef STBTT_sort
@@ -53,27 +62,10 @@ typedef char tl_tt__check_size16[sizeof(int16_t)==2 ? 1 : -1];
 #define ttCHAR(p)     (* (int8_t *) (p))
 #define ttFixed(p)    ttLONG(p)
 
-#if defined(STB_TRUETYPE_BIGENDIAN) && !defined(ALLOW_UNALIGNED_TRUETYPE)
-
-	#define ttUSHORT(p)   (* (uint16_t *) (p))
-	#define ttSHORT(p)    (* (int16_t *) (p))
-	#define ttULONG(p)    (* (uint32_t *) (p))
-	#define ttLONG(p)     (* (int32_t *) (p))
-
-#elif TL_LITTLE_ENDIAN && TL_UNALIGNED_ACCESS
-	
-	static uint16_t ttUSHORT(const uint8_t *p) { return tl_byteswap16(*(uint16_t*)p); }
-	static int16_t  ttSHORT(const uint8_t *p)   { return (int16_t)tl_byteswap16(*(int16_t*)p); }
-	static uint32_t ttULONG(const uint8_t *p)  { return tl_byteswap32(*(uint32_t*)p); }
-	static int32_t  ttLONG(const uint8_t *p)    { return (int32_t)tl_byteswap32(*(int32_t*)p); }
-#else
-
-	static uint16_t ttUSHORT(const uint8_t *p) { return p[0]*256 + p[1]; }
-	static int16_t ttSHORT(const uint8_t *p)   { return p[0]*256 + p[1]; }
-	static uint32_t ttULONG(const uint8_t *p)  { return (p[0]<<24) + (p[1]<<16) + (p[2]<<8) + p[3]; }
-	static int32_t ttLONG(const uint8_t *p)    { return (p[0]<<24) + (p[1]<<16) + (p[2]<<8) + p[3]; }
-
-#endif
+#define ttUSHORT(p) tl_read_be16(p)
+#define ttSHORT(p) ((int16_t)tl_read_be16(p))
+#define ttULONG(p) tl_read_be32(p)
+#define ttLONG(p) ((int32_t)tl_read_be32(p))
 
 #define tl_tt_tag4(p,c0,c1,c2,c3) ((p)[0] == (c0) && (p)[1] == (c1) && (p)[2] == (c2) && (p)[3] == (c3))
 #define tl_tt_tag(p,str)           tl_tt_tag4(p,str[0],str[1],str[2],str[3])
@@ -197,7 +189,7 @@ int tl_tt_FindGlyphIndex(const tl_tt_fontinfo *info, int unicode_codepoint)
       uint16_t searchRange = ttUSHORT(data+index_map+8) >> 1;
       uint16_t entrySelector = ttUSHORT(data+index_map+10);
       uint16_t rangeShift = ttUSHORT(data+index_map+12) >> 1;
-      uint16_t item, offset, start, end;
+	  uint16_t item, offset, start, end;
 
       // do a binary search of the segments
       uint32_t endCount = index_map + 14;
@@ -214,7 +206,6 @@ int tl_tt_FindGlyphIndex(const tl_tt_fontinfo *info, int unicode_codepoint)
       // now decrement to bias correctly to find smallest
       search -= 2;
       while (entrySelector) {
-         uint16_t start, end;
          searchRange >>= 1;
          start = ttUSHORT(data + search + 2 + segcount*2 + 2);
          end = ttUSHORT(data + search + 2);

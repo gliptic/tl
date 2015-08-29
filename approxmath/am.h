@@ -5,6 +5,11 @@
 
 typedef struct am_pair { float first, second; } am_pair;
 
+#define AM_PI			(3.14159265358979323846)
+#define AM_PI2          (6.28318530717958647693)
+#define AM_PI_O_2       (1.57079632679489661923)
+#define AM_PI_O_4       (0.785398163397448309616)
+
 TL_AM_API am_pair am_sincosf(float x);
 TL_AM_API float   am_sinf(float x);
 TL_AM_API float   am_cosf(float x);

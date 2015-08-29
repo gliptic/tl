@@ -1,5 +1,8 @@
 #include "am_internal.h"
 
+#include "../bits.h"
+#include <stdint.h>
+
 am_pair am_sincosf(float x)
 {
 	am_pair r;
@@ -140,11 +143,11 @@ float am_sinf_inline(float x)
 
 float am_sinf(float x)
 {
-	unsigned a, c, d;
+	uint32_t a, c, d;
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
 	xmm0 = _mm_load_ss(&x);
 	xmm1 = _mm_load_ss((float*)_ps_am_inv_sign_mask);
-	a = *(unsigned*)&x;
+	a = tl_ftourep(x);
 	xmm0 = _mm_mul_ss(xmm0, _mm_load_ss(_ps_am_2_o_pi));
 	xmm0 = _mm_and_ps(xmm0, xmm1);
 	a &= 0x80000000;
@@ -178,7 +181,7 @@ float am_sinf(float x)
 	xmm5 = _mm_load_ss(_ps_sincos_p0);
 	xmm1 = _mm_add_ss(xmm1, xmm4);
 	xmm1 = _mm_mul_ss(xmm1, xmm2);
-	xmm3 = _mm_load_ss((float*)&a);
+	xmm3 = _mm_load_ss((float const*)&a);
 	xmm1 = _mm_add_ss(xmm1, xmm7);
 	xmm1 = _mm_mul_ss(xmm1, xmm2);
 	xmm0 = _mm_or_ps(xmm0, xmm3);

@@ -1,11 +1,11 @@
 #include "model.h"
 
-#include <string.h>
+#include "../std.h"
 
 void tl_model_init_(tl_model* self, int size, int n)
 {
 	int i;
-	memset(self, 0, size);
+	mset(self, 0, size);
 	for(i = 0; i < n; ++i)
 	{
 		self->symbols[i].freq = 1;

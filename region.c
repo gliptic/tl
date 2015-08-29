@@ -1,28 +1,38 @@
 #include "region.h"
+#include "std.h"
 
-#define ALIGN_PTR(p) (char*)(((size_t)(p) + (TL_REGION_MAX_ALIGN-1)) & ~((size_t)TL_REGION_MAX_ALIGN - 1))
+#define TL_REGION_BLOCK_OVERHEAD TL_ALIGN_SIZE(sizeof(tl_region_block*), TL_REGION_MAX_ALIGN)
 
-void* tl_region_alloc_newblock(tl_region* r, size_t rounded_size) {
-	tl_region_block* bl = malloc(4096);
-	char* ret;
+// TODO: Use page allocators
 
-	bl->next = r->first_block;
-	r->first_block = bl;
-	r->cur = ALIGN_PTR(bl->mem);
-	r->end = (char*)((size_t)bl + 4096);
+void* tl_region_alloc_newblock(tl_allocator* alloc, size_t rounded_size) {
+	tl_region* r = (tl_region*)alloc;
+	size_t block_size = TL_ALIGN_SIZE(rounded_size + TL_REGION_BLOCK_OVERHEAD, TL_REGION_PAGE_SIZE); 
+	tl_region_block* bl = memalloc(block_size); // TODO: The following assumes that the alignment of bl is at least TL_REGION_MAX_ALIGN
+	uint8_t* ret;
+
+	bl->prev = r->last_block;
+	r->last_block = bl;
+
+	// TODO: We can avoid wasting space in the current block by not updating
+	// these if there's a significant amount left.
+	r->alloc.cur = (uint8_t*)bl + TL_REGION_BLOCK_OVERHEAD;
+	r->alloc.end = (uint8_t*)bl + block_size;
+
+	assert(TL_IS_ALIGNED(r->cur, TL_REGION_MAX_ALIGN));
 	
-	ret = r->cur;
-	r->cur += rounded_size;
+	ret = r->alloc.cur;
+	r->alloc.cur += rounded_size;
 	return ret;
 }
 
 void tl_region_free(tl_region* r) {
-	tl_region_block* bl = r->first_block;
+	tl_region_block* bl = r->last_block;
 
 	while(bl) {
-		tl_region_block* next = bl->next;
-		free(bl);
-		bl = next;
+		tl_region_block* prev = bl->prev;
+		memfree(bl);
+		bl = prev;
 	}
 }
 

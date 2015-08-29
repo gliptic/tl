@@ -2,8 +2,9 @@
 
 #include "../bits.h"
 #include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+//#include <string.h>
+//#include <assert.h>
+#include "../std.h"
 
 static int sym_comp(void const* a, void const* b) {
 	int af = ((tl_ord_freq const*)a)->freq;
@@ -22,7 +23,7 @@ int tl_generate_codes(unsigned num_syms, uint8 const* code_sizes, uint16* codes)
 	unsigned num_codes[TL_MAX_EXPECTED_CODE_SIZE + 1];
 	unsigned next_code[TL_MAX_EXPECTED_CODE_SIZE + 1];
 	unsigned code = 0;
-	memset(num_codes, 0, sizeof(num_codes));
+	mset(num_codes, 0, sizeof(num_codes));
 
 	for(i = 0; i < num_syms; i++) {
 		unsigned c = code_sizes[i];
@@ -72,7 +73,7 @@ int tl_limit_max_code_size(uint8* code_sizes, unsigned num_syms, unsigned max_co
 	|| (max_code_size < 1) || (max_code_size > TL_MAX_EVER_CODE_SIZE))
 		return 0;
 
-	memset(num_codes, 0, sizeof(num_codes));
+	mset(num_codes, 0, sizeof(num_codes));
 
 	for(i = 0; i < num_syms; i++) {
 		unsigned c = code_sizes[i];
@@ -124,7 +125,7 @@ int tl_limit_max_code_size(uint8* code_sizes, unsigned num_syms, unsigned max_co
 	for(i = 1; i <= max_code_size; i++) {
 		unsigned n = num_codes[i];
 		if(n) {
-			memset(p, i, n);
+			mset(p, i, n);
 			p += n;
 		}
 	}

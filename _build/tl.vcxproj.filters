@@ -207,6 +207,18 @@
     <ClCompile Include="..\codec\polar_model.c">
       <Filter>codec</Filter>
     </ClCompile>
+    <ClCompile Include="..\std.c" />
+    <ClCompile Include="..\windows\std.c">
+      <Filter>windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\region.c" />
+    <ClCompile Include="..\windows\io.c">
+      <Filter>windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\windows\runtime_vc.c">
+      <Filter>windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\utf8.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inflate.h" />
@@ -266,6 +278,11 @@
     <ClInclude Include="..\codec\codec_impl.h">
       <Filter>codec</Filter>
     </ClInclude>
+    <ClInclude Include="..\std.h" />
+    <ClInclude Include="..\region.h" />
+    <ClInclude Include="..\io.h" />
+    <ClInclude Include="..\rand.h" />
+    <ClInclude Include="..\utf8.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="fdlibm">
@@ -276,6 +293,9 @@
     </Filter>
     <Filter Include="codec">
       <UniqueIdentifier>{a71cb1d1-f2b7-4d61-8088-b5dbf58490d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="windows">
+      <UniqueIdentifier>{8d6428ee-ebd3-4377-9308-0bfaaf4b7c63}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

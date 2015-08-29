@@ -1,5 +1,6 @@
 #include "inflate_impl.h"
 #include "bits.h"
+#include "std.h"
 
 static int tl_reverse_bits(int v, int bits)
 {
@@ -17,8 +18,8 @@ static int zbuild_huffman(zhuffman *z, uint8 *sizelist, int num)
 	int code, next_code[16], sizes[17];
 
 	// DEFLATE spec for generating codes
-	memset(sizes, 0, sizeof(sizes));
-	memset(z->fast, 255, sizeof(z->fast));
+	mset(sizes, 0, sizeof(sizes));
+	mset(z->fast, 255, sizeof(z->fast));
 	for (i=0; i < num; ++i) 
 		++sizes[sizelist[i]];
 	sizes[0] = 0;
@@ -225,7 +226,7 @@ static int parse_zlib(tl_inflate_source* self, int parse_header)
 					self->hdist += 1;
 					self->hclen += 4;
 
-					memset(self->codelength_sizes, 0, sizeof(self->codelength_sizes));
+					mset(self->codelength_sizes, 0, sizeof(self->codelength_sizes));
 					for (self->i = 0; self->i < self->hclen; ++self->i) {
 						unsigned int s;
 						YIELD_WE(8, zreceive(self, 3, &s));
@@ -243,18 +244,18 @@ static int parse_zlib(tl_inflate_source* self, int parse_header)
 						else if (c == 16) {
 							YIELD_WE(10, zreceive(self,2,&c));
 							c += 3;
-							memset(self->lencodes + self->i, self->lencodes[self->i - 1], c);
+							mset(self->lencodes + self->i, self->lencodes[self->i - 1], c);
 							self->i += c;
 						} else if (c == 17) {
 							YIELD_WE(11, zreceive(self,3,&c));
 							c += 3;
-							memset(self->lencodes + self->i, 0, c);
+							mset(self->lencodes + self->i, 0, c);
 							self->i += c;
 						} else {
 							assert(c == 18);
 							YIELD_WE(12, zreceive(self,7,&c));
 							c += 11;
-							memset(self->lencodes + self->i, 0, c);
+							mset(self->lencodes + self->i, 0, c);
 							self->i += c;
 						}
 					}
@@ -318,7 +319,7 @@ void tl_inf_init_(tl_inflate_source* self)
 
 tl_inflate* tl_inf_create()
 {
-	tl_inflate_source* self = malloc(sizeof(tl_inflate_source));
+	tl_inflate_source* self = memalloc(sizeof(tl_inflate_source));
 	tl_inf_init_(self);
 	return &self->base;
 }
@@ -330,5 +331,5 @@ int tl_inf_run(tl_inflate* self)
 
 void tl_inf_destroy(tl_inflate* self)
 {
-	free(self);
+	memfree(self);
 }

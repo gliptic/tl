@@ -1,8 +1,9 @@
 #include "test_codec.h"
 #include "bitstream.h"
 #include "polar_model.h"
+#include "../rand.h"
 
-#include <stdlib.h>
+//#include <stdlib.h>
 
 void test_codec()
 {
@@ -15,10 +16,12 @@ void test_codec()
 	tl_bitsink_init(&bs);
 	tl_bs_file_sink(&bs.sink, "test.bin");
 
+	tl_xorshift xs = { 1 };
+	
 	for(i = 0; i < 8192; ++i)
 	{
 		//tl_bitsink_putbits(&bs, i, 7);
-		int sym = (rand() & 0xf);
+		int sym = (tl_xs_gen(&xs) & 0xf);
 		//sym = (sym * sym) >> 16;
 
 		tl_polar_model_update(model);

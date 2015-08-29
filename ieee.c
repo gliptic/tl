@@ -11,8 +11,8 @@
 #endif
 #include <float.h>
 #include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
+//#include <stdio.h>
+//#include <stdlib.h>
 
 //#if TL_X87
 

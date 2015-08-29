@@ -1,8 +1,9 @@
 #include "image.h"
 
-#include <string.h>
-#include <assert.h>
-#include <malloc.h>
+#include "std.h"
+//#include <string.h>
+//#include <assert.h>
+//#include <malloc.h>
 
 #define tl_image_ptr(img, x, y, bpp) ((img)->pixels + (y)*(img)->pitch + (x)*(bpp))
 #define tl_image_pitch(img) ((img)->pitch)
@@ -19,7 +20,7 @@ void tl_blit_unsafe(tl_image* to, tl_image* from, int x, int y)
 
 	while(hleft-- > 0)
 	{
-		memcpy(tp, fp, fline);
+		mcpy(tp, fp, fline);
 		tp += tpitch;
 		fp += fpitch;
 	}
@@ -53,7 +54,7 @@ int tl_image_convert(tl_image* to, tl_image* from)
 		{
 			uint32 fline = from->w * from->bpp;
 			for(; hleft-- > 0; tp += tpitch, fp += fpitch)
-				memcpy(tp, fp, fline);
+				mcpy(tp, fp, fline);
 		}
 		else switch (id)
 		{
@@ -107,14 +108,14 @@ int tl_image_pad(tl_image* to, tl_image* from)
 	assert(to->w == from->w + 2);
 	assert(to->h == from->h + 2);
 
-	memset(to->pixels, 0, tl_image_size(to));
+	mset(to->pixels, 0, tl_image_size(to));
 	tl_blit_unsafe(to, from, 1, 1);
 	return 0;
 }
 
 void tl_image_init(tl_image* self, uint32 w, uint32 h, int bpp)
 {
-	self->pixels = malloc(w*h*bpp);
+	self->pixels = memalloc(w*h*bpp);
 	self->w = w;
 	self->h = h;
 	self->pitch = w * bpp;

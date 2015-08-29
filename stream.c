@@ -1,13 +1,14 @@
 #include "stream.h"
 #include "vector.h"
+#include "std.h"
 
-#include <stdio.h>
-#include <malloc.h>
-#include <string.h>
+//#include <stdio.h>
+//#include <malloc.h>
+//#include <string.h>
 
 static void tl_bs_free_ud(tl_byte_source_pullable* self)
 {
-	free(self->ud);
+	memfree(self->ud);
 }
 
 //#define TL_BUFFER_SIZE (4096)
@@ -57,7 +58,7 @@ static int tl_bs_mem_enlarge(tl_byte_sink_pushable* self)
 static void tl_bs_mem_free_sink(tl_byte_sink_pushable* self) {
 	tl_bs_mem_data* data = (tl_bs_mem_data*)self->ud;
 	tl_vector_free(data->vec);
-	free(data);
+	memfree(data);
 }
 
 static void tl_bs_file_free(tl_byte_source_pullable* self)
@@ -65,7 +66,7 @@ static void tl_bs_file_free(tl_byte_source_pullable* self)
 	tl_bs_file_data* data = (tl_bs_file_data*)self->ud;
 	if(data->f)
 		fclose(data->f);
-	free(data);
+	memfree(data);
 }
 
 static void tl_bs_file_free_sink(tl_byte_sink_pushable* self) {
@@ -73,7 +74,7 @@ static void tl_bs_file_free_sink(tl_byte_sink_pushable* self) {
 	tl_bs_file_push(self);
 	if(data->f)
 		fclose(data->f);
-	free(data);
+	memfree(data);
 }
 
 static int tl_bs_file_seek_sink(tl_byte_sink_pushable* self, uint64 p) {
@@ -93,7 +94,7 @@ int tl_bs_file_source(tl_byte_source_pullable* src, char const* path) {
 
 	tl_bs_init_source(src);
 	
-	data = malloc(sizeof(tl_bs_file_data));
+	data = memalloc(sizeof(tl_bs_file_data));
 	data->f = f;
 
 	src->ud = data;
@@ -111,7 +112,7 @@ int tl_bs_file_sink(tl_byte_sink_pushable* sink, char const* path) {
 
 	tl_bs_init_sink(sink);
 	
-	data = malloc(sizeof(tl_bs_file_data));
+	data = memalloc(sizeof(tl_bs_file_data));
 	data->f = f;
 
 	sink->ud = data;
@@ -129,7 +130,7 @@ int tl_bs_mem_sink(tl_byte_sink_pushable* sink) {
 	tl_bs_mem_data* data;
 	tl_bs_init_sink(sink);
 	
-	data = malloc(sizeof(tl_bs_mem_data));
+	data = memalloc(sizeof(tl_bs_mem_data));
 	tl_vector_new_empty(data->vec);
 
 	sink->ud = data;

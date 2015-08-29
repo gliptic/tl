@@ -1,7 +1,7 @@
 #ifndef UUID_644FCF12367F4D475780169F9A4EAE7C
 #define UUID_644FCF12367F4D475780169F9A4EAE7C
 
-#include <stdlib.h>
+//#include <stdlib.h>
 #include "platform.h"
 #include "cstdint.h"
 
@@ -98,6 +98,30 @@ TL_INLINE uint32_t tl_rol32(uint32_t x, int s) {
 
 TL_INLINE uint32_t tl_ror32(uint32_t x, int s) {
 	return (x >> s) | (x << (32-s));
+}
+
+TL_INLINE uint32_t tl_ftourep(float f) {
+	union { float f; uint32_t u; } _;
+	_.f = f;
+	return _.u;
+}
+
+TL_INLINE float tl_ureptof(uint32_t u) {
+	union { float f; uint32_t u; } _;
+	_.u = u;
+	return _.f;
+}
+
+TL_INLINE uint64_t tl_dtourep(double f) {
+	union { double f; uint64_t u; } _;
+	_.f = f;
+	return _.u;
+}
+
+TL_INLINE double tl_ureptod(uint64_t u) {
+	union { double f; uint64_t u; } _;
+	_.u = u;
+	return _.f;
 }
 
 #endif // UUID_644FCF12367F4D475780169F9A4EAE7C

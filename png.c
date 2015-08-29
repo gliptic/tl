@@ -1,7 +1,6 @@
 #include "png.h"
 
-#include <stdio.h> // TEMP
-
+#include "std.h"
 #include "coro.h"
 #include "inflate_impl.h"
 
@@ -33,7 +32,7 @@ static uint8 png_sig[8] = { 137,80,78,71,13,10,26,10 };
 
 tl_png* tl_png_create(void)
 {
-	tl_png_source* self = malloc(sizeof(tl_png_source));
+	tl_png_source* self = memalloc(sizeof(tl_png_source));
 	tl_png_init_(self);
 	return (tl_png*)self;
 }
@@ -42,8 +41,8 @@ void tl_png_destroy(tl_png* self)
 {
 	// TODO: tl_inf_deinit_ in case inflate ever needs to do something
 	tl_bs_free(&self->in);
-	free(self->img.pixels);
-	free(self);
+	memfree(self->img.pixels);
+	memfree(self);
 }
 
 enum {
@@ -202,14 +201,14 @@ int tl_png_load(tl_png* self_, uint32 req_comp)
 						self->base.img.bpp = self->img_n;
 
 					total_size = self->base.img.w * self->base.img.h * self->base.img.bpp;
-					img = malloc(total_size);
-					free(self->base.img.pixels);
+					img = memalloc(total_size);
+					memfree(self->base.img.pixels);
 					self->base.img.pixels = img; // Save immediately so that it isn't leaked
 					self->base.img.pitch = self->base.img.w * self->base.img.bpp;
 					out = img;
 					
 					scanline_size = self->base.img.w * self->img_n;
-					scanline = malloc(1 + scanline_size);
+					scanline = memalloc(1 + scanline_size);
 
 					if(self->base.img.bpp > self->img_n)
 						memset(img, 255, total_size); // Need to add alphachannel, so fill it all with 0xff

@@ -5,7 +5,8 @@
 #include "../cstdint.h"
 #include "../stream.h"
 #include "../platform.h"
-#include <assert.h>
+//#include <assert.h>
+#include "../std.h"
 
 typedef struct tl_bitsink
 {

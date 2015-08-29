@@ -1,6 +1,10 @@
 #ifndef UUID_E4C54B1B70704E6FE73DE99BC631C8A4
 #define UUID_E4C54B1B70704E6FE73DE99BC631C8A4
 
+#include "platform.h"
+#include "bits.h"
+#include <stdint.h>
+
 // Adapted from PortAudio
 
 #if defined(__APPLE__)
@@ -67,6 +71,22 @@
 #   else
 #      error Memory barriers are not defined on this system. You can still compile by defining ALLOW_SMP_DANGERS, but SMP safety will not be guaranteed.
 #   endif
+#endif
+
+#if TL_UNALIGNED_ACCESS
+
+TL_INLINE uint32_t tl_read_le32(uint8_t const* p) { return tl_le32(*(uint32_t const*)p); }
+TL_INLINE uint32_t tl_read_be32(uint8_t const* p) { return tl_be32(*(uint32_t const*)p); }
+TL_INLINE uint16_t tl_read_le16(uint8_t const* p) { return tl_le16(*(uint16_t const*)p); }
+TL_INLINE uint16_t tl_read_be16(uint8_t const* p) { return tl_be16(*(uint16_t const*)p); }
+
+#else
+
+TL_INLINE uint32_t tl_read_le32(uint8_t const* p) { return p[0] + ((uint32_t)p[1] << 8) + ((uint32_t)p[2] << 16) + ((uint32_t)p[3] << 24); }
+TL_INLINE uint32_t tl_read_be32(uint8_t const* p) { return p[3] + ((uint32_t)p[2] << 8) + ((uint32_t)p[1] << 16) + ((uint32_t)p[0] << 24); }
+TL_INLINE uint16_t tl_read_le16(uint8_t const* p) { return p[0] + ((uint16_t)p[1] << 8); }
+TL_INLINE uint16_t tl_read_be16(uint8_t const* p) { return p[1] + ((uint16_t)p[0] << 8); }
+
 #endif
 
 #endif // UUID_E4C54B1B70704E6FE73DE99BC631C8A4
