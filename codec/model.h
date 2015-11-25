@@ -5,15 +5,15 @@
 
 typedef struct tl_sym_freq
 {
-	uint32 freq;
-	uint16 bits;
-	uint8  length;
+	u32 freq;
+	u16 bits;
+	u8  length;
 } tl_sym_freq;
 
 typedef struct tl_model
 {
-	int n;
-	uint32 sum, next_rebuild;
+	u32 n;
+	u32 sum, next_rebuild;
 	tl_sym_freq symbols[1];
 } tl_model;
 
@@ -42,7 +42,7 @@ void tl_model_init_(tl_model* self, int size, int n);
 
 #define tl_model_init(self, num) do { \
 	tl_model* self_ = (tl_model*)(&(self)[0]); \
-	int num_ = (num); \
+	u32 num_ = (num); \
 	tl_model_init_(self_, TL_MODEL_SIZE(num_), num_); \
 } while(0)
 

@@ -12,14 +12,14 @@ static int tl_reverse_bits(int v, int bits)
 
 #define CHECK(f)  do { int r_ = (f); if (r_) return r_; } while(0)
 
-static int zbuild_huffman(zhuffman *z, uint8 *sizelist, int num)
+static int zbuild_huffman(zhuffman *z, u8 *sizelist, int num)
 {
 	int i,k=0;
 	int code, next_code[16], sizes[17];
 
 	// DEFLATE spec for generating codes
-	mset(sizes, 0, sizeof(sizes));
-	mset(z->fast, 255, sizeof(z->fast));
+	memset(sizes, 0, sizeof(sizes));
+	memset(z->fast, 255, sizeof(z->fast));
 	for (i=0; i < num; ++i) 
 		++sizes[sizelist[i]];
 	sizes[0] = 0;
@@ -28,8 +28,8 @@ static int zbuild_huffman(zhuffman *z, uint8 *sizelist, int num)
 	code = 0;
 	for (i=1; i < 16; ++i) {
 		next_code[i] = code;
-		z->firstcode[i] = (uint16) code;
-		z->firstsymbol[i] = (uint16) k;
+		z->firstcode[i] = (u16) code;
+		z->firstsymbol[i] = (u16) k;
 		code = (code + sizes[i]);
 		if (sizes[i])
 			if (code-1 >= (1 << i)) return ZERR_BAD_CODELENGTHS;
@@ -42,12 +42,12 @@ static int zbuild_huffman(zhuffman *z, uint8 *sizelist, int num)
 		int s = sizelist[i];
 		if (s) {
 			int c = next_code[s] - z->firstcode[s] + z->firstsymbol[s];
-			z->size[c] = (uint8)s;
-			z->value[c] = (uint16)i;
+			z->size[c] = (u8)s;
+			z->value[c] = (u16)i;
 			if (s <= ZFAST_BITS) {
 				int k = tl_reverse_bits(next_code[s],s);
 				while (k < (1 << ZFAST_BITS)) {
-					z->fast[k] = (uint16) c;
+					z->fast[k] = (u16) c;
 					k += (1 << s);
 				}
 			}
@@ -131,10 +131,10 @@ static int dist_base[32] = { 1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,
 static int dist_extra[32] =
 { 0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,0,0};
 
-static uint8 length_dezigzag[19] = { 16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15 };
+static u8 length_dezigzag[19] = { 16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15 };
 
 // TODO: should statically initialize these for optimal thread safety
-static uint8 default_length[288], default_distance[32];
+static u8 default_length[288], default_distance[32];
 static void init_defaults(void)
 {
    int i;   // use <= to match clearly with spec
@@ -184,7 +184,7 @@ static int parse_zlib(tl_inflate_source* self, int parse_header)
 				// drain the bit-packed data into header
 				self->i = 0;
 				while (self->num_bits > 0) {
-					self->header[self->i++] = (uint8) (self->code_buffer & 255); // wtf this warns?
+					self->header[self->i++] = (u8) (self->code_buffer & 255); // wtf this warns?
 					self->code_buffer >>= 8;
 					self->num_bits -= 8;
 				}
@@ -199,7 +199,7 @@ static int parse_zlib(tl_inflate_source* self, int parse_header)
 				if (nlen != (self->len ^ 0xffff)) return ZERR_STREAM_CORRUPT;
 
 				while (self->len--) {
-					uint8 b;
+					u8 b;
 					YIELD_WE(4, (tl_bs_check(&self->base.in) ? (tl_bs_check_sink(&self->base.out) ? 0 : ZERR_OVERFLOW) : ZERR_UNDERFLOW));
 					b = tl_bs_unsafe_get(&self->base.in);
 					self->window[self->window_pos] = b;
@@ -226,11 +226,11 @@ static int parse_zlib(tl_inflate_source* self, int parse_header)
 					self->hdist += 1;
 					self->hclen += 4;
 
-					mset(self->codelength_sizes, 0, sizeof(self->codelength_sizes));
+					memset(self->codelength_sizes, 0, sizeof(self->codelength_sizes));
 					for (self->i = 0; self->i < self->hclen; ++self->i) {
 						unsigned int s;
 						YIELD_WE(8, zreceive(self, 3, &s));
-						self->codelength_sizes[length_dezigzag[self->i]] = (uint8) s;
+						self->codelength_sizes[length_dezigzag[self->i]] = (u8) s;
 					}
 					CHECK(zbuild_huffman(&self->z_codelength, self->codelength_sizes, 19));
 
@@ -240,22 +240,22 @@ static int parse_zlib(tl_inflate_source* self, int parse_header)
 						YIELD_WE(9, zhuffman_decode(self, &self->z_codelength, &c));
 						assert(c >= 0 && c < 19);
 						if (c < 16)
-							self->lencodes[self->i++] = (uint8) c;
+							self->lencodes[self->i++] = (u8) c;
 						else if (c == 16) {
 							YIELD_WE(10, zreceive(self,2,&c));
 							c += 3;
-							mset(self->lencodes + self->i, self->lencodes[self->i - 1], c);
+							memset(self->lencodes + self->i, self->lencodes[self->i - 1], c);
 							self->i += c;
 						} else if (c == 17) {
 							YIELD_WE(11, zreceive(self,3,&c));
 							c += 3;
-							mset(self->lencodes + self->i, 0, c);
+							memset(self->lencodes + self->i, 0, c);
 							self->i += c;
 						} else {
 							assert(c == 18);
 							YIELD_WE(12, zreceive(self,7,&c));
 							c += 11;
-							mset(self->lencodes + self->i, 0, c);
+							memset(self->lencodes + self->i, 0, c);
 							self->i += c;
 						}
 					}
@@ -272,8 +272,8 @@ static int parse_zlib(tl_inflate_source* self, int parse_header)
 					if (z < 256) {
 						self->z = z;
 						YIELD_WE(14, tl_bs_check_sink(&self->base.out) ? 0 : ZERR_OVERFLOW);
-						self->window[self->window_pos] = (uint8) self->z;
-						tl_bs_unsafe_put(&self->base.out, (uint8) self->z);
+						self->window[self->window_pos] = (u8) self->z;
+						tl_bs_unsafe_put(&self->base.out, (u8) self->z);
 						self->window_pos = (self->window_pos + 1) & 0x7fff;
 					} else {
 						unsigned int extra;
@@ -295,7 +295,7 @@ static int parse_zlib(tl_inflate_source* self, int parse_header)
 						self->dist += extra;
 
 						while (self->len--) {
-							uint8 b;
+							u8 b;
 							YIELD_WE(18, tl_bs_check_sink(&self->base.out) ? 0 : ZERR_OVERFLOW);
 							b = self->window[(self->window_pos - self->dist) & 0x7fff];
 							self->window[self->window_pos] = b;

@@ -8,7 +8,7 @@ typedef struct tl_png_source {
 	tl_png base;
 
 	tl_inflate_source inf;
-	uint32 img_n;
+	u32 img_n;
 } tl_png_source;
 
 void tl_png_init_(tl_png_source* self)
@@ -23,7 +23,7 @@ void tl_png_init_(tl_png_source* self)
 #define get32(self) tl_bs_pull32_def0(&self->base.in)
 #define skip(self, n) tl_bs_pull_skip(&self->base.in, (n))
 
-static uint8 png_sig[8] = { 137,80,78,71,13,10,26,10 };
+static u8 png_sig[8] = { 137,80,78,71,13,10,26,10 };
 
 
 #define PNG_TYPE(a,b,c,d)  (((a) << 24) + ((b) << 16) + ((c) << 8) + (d))
@@ -50,7 +50,7 @@ enum {
 	F_avg_first, F_paeth_first
 };
 
-static uint8 first_row_filter[5] =
+static u8 first_row_filter[5] =
 {
 	F_none, F_sub, F_none, F_avg_first, F_paeth_first
 
@@ -68,19 +68,19 @@ static int paeth(int a, int b, int c)
 	return c;
 }
 
-int tl_png_load(tl_png* self_, uint32 req_comp)
+int tl_png_load(tl_png* self_, u32 req_comp)
 {
-	uint32 i, pal_img_n = 0;
+	u32 i, pal_img_n = 0;
 	tl_png_source* self = (tl_png_source*)self_;
 	int seen_ihdr = 0, has_trans = 0;
 	int interlace;
-	uint32 pal_len = 0;
-	uint8* img = NULL;
-	uint8* out = NULL;
-	uint8* scanline = NULL;
-	uint32 total_size;
-	uint32 scanline_size;
-	uint8 palette[1024], tc[3];
+	u32 pal_len = 0;
+	u8* img = NULL;
+	u8* out = NULL;
+	u8* scanline = NULL;
+	u32 total_size;
+	u32 scanline_size;
+	u8 palette[1024], tc[3];
 
 	if(req_comp > 4)
 		return PNGERR_INVALID_PARAMETER;
@@ -91,8 +91,8 @@ int tl_png_load(tl_png* self_, uint32 req_comp)
 
 	while(1)
 	{
-		uint32 length = get32(self);
-		uint32 type = get32(self);
+		u32 length = get32(self);
+		u32 type = get32(self);
 
 		switch(type)
 		{
@@ -172,10 +172,10 @@ int tl_png_load(tl_png* self_, uint32 req_comp)
 				else
 				{
 					if(!(self->img_n & 1)) return PNGERR_INVALID_TRANSPARENCY;
-					if(length != (uint32)self->img_n*2) return PNGERR_INVALID_TRANSPARENCY;
+					if(length != (u32)self->img_n*2) return PNGERR_INVALID_TRANSPARENCY;
 					has_trans = 1;
 					for(i = 0; i < self->img_n; ++i)
-						tc[i] = (uint8) get16(self); // non 8-bit images will be larger
+						tc[i] = (u8) get16(self); // non 8-bit images will be larger
 				}
 				break;
 			}
@@ -236,7 +236,7 @@ int tl_png_load(tl_png* self_, uint32 req_comp)
 						self->inf.base.flush = 1;
 					}
 					self->base.in.buf = self->inf.base.in.buf_end;
-					length -= tl_bs_left(&self->inf.base.in);
+					length -= (u32)tl_bs_left(&self->inf.base.in);
 
 					do
 					{
@@ -245,13 +245,13 @@ int tl_png_load(tl_png* self_, uint32 req_comp)
 						if(self->inf.base.out.out == self->inf.base.out.out_end)
 						{
 							// We have a full scanline
-							uint8* p = scanline;
-							uint8 left[4] = {0}, above[4] = {0};
-							uint8 filter = *p++;
-							uint32 k;
-							uint32 img_n = self->img_n;
-							uint32 bpp = self->base.img.bpp;
-							int32 npitch = -(int32)self->base.img.w * bpp;
+							u8* p = scanline;
+							u8 left[4] = {0}, above[4] = {0};
+							u8 filter = *p++;
+							u32 k;
+							u32 img_n = self->img_n;
+							u32 bpp = self->base.img.bpp;
+							i32 npitch = -(i32)self->base.img.w * bpp;
 
 							if(filter > F_paeth)
 								return PNGERR_INVALID_IDAT;
@@ -269,12 +269,12 @@ int tl_png_load(tl_png* self_, uint32 req_comp)
 									CASE(F_up)          { out [k] = *p++ + out[k+npitch]; } break;
 									CASE(F_avg)         { left[k] = *p++ + ((out[k+npitch] + left[k]) >> 1); out[k] = left[k]; } break;
 									CASE(F_paeth)       {
-										left[k] = (uint8)(*p++ + paeth(left[k], out[k+npitch], above[k]));
+										left[k] = (u8)(*p++ + paeth(left[k], out[k+npitch], above[k]));
 										above[k] = out[k+npitch];
 										out[k] = left[k];
 									} break;
 									CASE(F_avg_first)   { left[k] = *p++ + (left[k] >> 1); out[k] = left[k]; } break;
-									CASE(F_paeth_first) { left[k] = (uint8)(*p++ + paeth(left[k], 0, 0)); out[k] = left[k]; } break;
+									CASE(F_paeth_first) { left[k] = (u8)(*p++ + paeth(left[k], 0, 0)); out[k] = left[k]; } break;
 								}
 								#undef CASE
 							}
@@ -316,14 +316,14 @@ int tl_png_load(tl_png* self_, uint32 req_comp)
 				
 				if (pal_img_n && self->base.img.bpp != 1)
 				{
-					uint8* p = img;
-					uint32 bpp = self->base.img.bpp;
+					u8* p = img;
+					u32 bpp = self->base.img.bpp;
 					// Expand palette to 3 or 4 components
 					assert(bpp == 3 || bpp == 4);
 						
 					for (i = self->base.img.w * self->base.img.h; i-- > 0; p += bpp)
 					{
-						uint8 idx = p[0];
+						u8 idx = p[0];
 
 						p[0] = palette[idx*4 + 0];
 						p[1] = palette[idx*4 + 1];

@@ -10,16 +10,16 @@
 
 typedef struct tl_bitsink
 {
-	uint32 bits;
-	int32  bits_written;
+	u32 bits;
+	i32  bits_written;
 
 	tl_byte_sink_pushable sink;
 } tl_bitsink;
 
 typedef struct tl_bitsource
 {
-	uint32 bits;
-	int32  bits_read;
+	u32 bits;
+	i32  bits_read;
 
 	tl_byte_source_pullable source;
 } tl_bitsource;
@@ -38,7 +38,7 @@ TL_INLINE void tl_bitsink_deinit(tl_bitsink* s)
 	tl_bs_free_sink(&s->sink);
 }
 
-TL_INLINE void tl_bitsink_put(tl_bitsink* s, uint32 b)
+TL_INLINE void tl_bitsink_put(tl_bitsink* s, u32 b)
 {
 	assert((b&~1u) == 0);
 	s->bits |= b << (31 - s->bits_written++);
@@ -50,7 +50,7 @@ TL_INLINE void tl_bitsink_put(tl_bitsink* s, uint32 b)
 	}
 }
 
-void tl_bitsink_putbits(tl_bitsink* s, uint32 b, int32 n);
+void tl_bitsink_putbits(tl_bitsink* s, u32 b, i32 n);
 void tl_bitsink_flush(tl_bitsink* s);
 void tl_bitsink_flushbytes(tl_bitsink* s);
 

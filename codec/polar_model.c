@@ -4,11 +4,12 @@
 
 void tl_polar_model_rebuild(tl_model* self)
 {
-	uint16 codes[256];
-	uint8 lengths[256];
+	u16 codes[256];
+	u8 lengths[256];
 	tl_ord_freq symbols[256];
 	unsigned max;
-	int r, i;
+	int r;
+	u32 i;
 
 	int shift = tl_top_bit(self->sum >> 16) + 1;
 	int offset = (1 << shift) - 1;

@@ -1,6 +1,6 @@
 #include "bitstream.h"
 
-void tl_bitsink_putbits(tl_bitsink* s, uint32 b, int32 n)
+void tl_bitsink_putbits(tl_bitsink* s, u32 b, i32 n)
 {
 	assert(n > 0);
 more:

@@ -11,7 +11,7 @@ void sprint(char const* s) {
 	WriteConsole(
 		h,
 		s,
-		(DWORD)slen(s),
+		(DWORD)strlen(s),
 		&dummy,
 		NULL
 		);

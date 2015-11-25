@@ -11,16 +11,16 @@
 
 void tl_blit_unsafe(tl_image* to, tl_image* from, int x, int y)
 {
-	uint8* tp = tl_image_ptr(to, x, y, to->bpp);
-	uint8* fp = from->pixels;
-	uint32 tpitch = tl_image_pitch(to);
-	uint32 fline = from->w * from->bpp;
-	uint32 fpitch = tl_image_pitch(from);
-	uint32 hleft = from->h;
+	u8* tp = tl_image_ptr(to, x, y, to->bpp);
+	u8* fp = from->pixels;
+	u32 tpitch = tl_image_pitch(to);
+	u32 fline = from->w * from->bpp;
+	u32 fpitch = tl_image_pitch(from);
+	u32 hleft = from->h;
 
 	while(hleft-- > 0)
 	{
-		mcpy(tp, fp, fline);
+		memcpy(tp, fp, fline);
 		tp += tpitch;
 		fp += fpitch;
 	}
@@ -28,15 +28,15 @@ void tl_blit_unsafe(tl_image* to, tl_image* from, int x, int y)
 
 int tl_image_convert(tl_image* to, tl_image* from)
 {
-	uint32 hleft = from->h;
-	uint32 w = from->w;
+	u32 hleft = from->h;
+	u32 w = from->w;
 	int fbpp = from->bpp;
 	int tbpp = to->bpp;
-	uint8* tp = to->pixels;
-	uint8* fp = from->pixels;
-	uint32 tpitch = tl_image_pitch(to);
-	uint32 fpitch = tl_image_pitch(from);
-	uint32 i;
+	u8* tp = to->pixels;
+	u8* fp = from->pixels;
+	u32 tpitch = tl_image_pitch(to);
+	u32 fpitch = tl_image_pitch(from);
+	u32 i;
 	
 	if(to->w != from->w || to->h != from->h)
 		return -1;
@@ -45,16 +45,16 @@ int tl_image_convert(tl_image* to, tl_image* from)
 	assert(tbpp >= 1 && tbpp <= 4);
 
 	{
-		uint32 id = ((fbpp << 2) + tbpp) - ((1<<2)+1);
+		u32 id = ((fbpp << 2) + tbpp) - ((1<<2)+1);
 		// id is a value in [0, 16)
 
 		#define FT(f,t) ((((f)-1)<<2)+((t)-1))
 
 		if(fbpp == tbpp)
 		{
-			uint32 fline = from->w * from->bpp;
+			u32 fline = from->w * from->bpp;
 			for(; hleft-- > 0; tp += tpitch, fp += fpitch)
-				mcpy(tp, fp, fline);
+				memcpy(tp, fp, fline);
 		}
 		else switch (id)
 		{
@@ -63,7 +63,7 @@ int tl_image_convert(tl_image* to, tl_image* from)
 				for(; hleft-- > 0; tp += tpitch, fp += fpitch)
 				for(i = 0; i < w; ++i)
 				{
-					uint8 f = fp[i];
+					u8 f = fp[i];
 					/*
 					tp[i*4  ] = f;
 					tp[i*4+1] = f;
@@ -108,12 +108,12 @@ int tl_image_pad(tl_image* to, tl_image* from)
 	assert(to->w == from->w + 2);
 	assert(to->h == from->h + 2);
 
-	mset(to->pixels, 0, tl_image_size(to));
+	memset(to->pixels, 0, tl_image_size(to));
 	tl_blit_unsafe(to, from, 1, 1);
 	return 0;
 }
 
-void tl_image_init(tl_image* self, uint32 w, uint32 h, int bpp)
+void tl_image_init(tl_image* self, u32 w, u32 h, int bpp)
 {
 	self->pixels = memalloc(w*h*bpp);
 	self->w = w;

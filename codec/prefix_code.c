@@ -12,18 +12,18 @@ static int sym_comp(void const* a, void const* b) {
 	return af < bf ? 1 : (af > bf ? -1 : 0);
 }
 
-void tl_sort_symbols(tl_ord_freq* symbols, uint32 num_syms) {
+void tl_sort_symbols(tl_ord_freq* symbols, u32 num_syms) {
 	qsort(symbols, num_syms, sizeof(tl_ord_freq), sym_comp);
 }
 
 #define TL_MAX_EXPECTED_CODE_SIZE (16)
 
-int tl_generate_codes(unsigned num_syms, uint8 const* code_sizes, uint16* codes) {
+int tl_generate_codes(unsigned num_syms, u8 const* code_sizes, u16* codes) {
 	unsigned i;
 	unsigned num_codes[TL_MAX_EXPECTED_CODE_SIZE + 1];
 	unsigned next_code[TL_MAX_EXPECTED_CODE_SIZE + 1];
 	unsigned code = 0;
-	mset(num_codes, 0, sizeof(num_codes));
+	memset(num_codes, 0, sizeof(num_codes));
 
 	for(i = 0; i < num_syms; i++) {
 		unsigned c = code_sizes[i];
@@ -51,7 +51,7 @@ int tl_generate_codes(unsigned num_syms, uint8 const* code_sizes, uint16* codes)
 		unsigned c = code_sizes[i];
 		assert(!c || (next_code[c] <= 0xffff));
             
-		codes[i] = (uint16)(next_code[c]++);
+		codes[i] = (u16)(next_code[c]++);
 		assert(!c || (tl_top_bit(codes[i]) + 1 <= code_sizes[i]));
 	}
          
@@ -60,20 +60,20 @@ int tl_generate_codes(unsigned num_syms, uint8 const* code_sizes, uint16* codes)
 
 #define TL_MAX_EVER_CODE_SIZE (34)
 
-int tl_limit_max_code_size(uint8* code_sizes, unsigned num_syms, unsigned max_code_size) {
+int tl_limit_max_code_size(u8* code_sizes, unsigned num_syms, unsigned max_code_size) {
 	unsigned i;
-	uint8 new_codesizes[TL_MAX_SUPPORTED_SYMS];
+	u8 new_codesizes[TL_MAX_SUPPORTED_SYMS];
 	unsigned num_codes[TL_MAX_EVER_CODE_SIZE + 1];
 	unsigned ofs = 0, total = 0;
 	unsigned next_sorted_ofs[TL_MAX_EVER_CODE_SIZE + 1];
 	int should_limit = 0;
-	uint8* p = new_codesizes;
+	u8* p = new_codesizes;
 
 	if ((!num_syms) || (num_syms > TL_MAX_SUPPORTED_SYMS)
 	|| (max_code_size < 1) || (max_code_size > TL_MAX_EVER_CODE_SIZE))
 		return 0;
 
-	mset(num_codes, 0, sizeof(num_codes));
+	memset(num_codes, 0, sizeof(num_codes));
 
 	for(i = 0; i < num_syms; i++) {
 		unsigned c = code_sizes[i];
@@ -125,7 +125,7 @@ int tl_limit_max_code_size(uint8* code_sizes, unsigned num_syms, unsigned max_co
 	for(i = 1; i <= max_code_size; i++) {
 		unsigned n = num_codes[i];
 		if(n) {
-			mset(p, i, n);
+			memset(p, i, n);
 			p += n;
 		}
 	}
@@ -136,7 +136,7 @@ int tl_limit_max_code_size(uint8* code_sizes, unsigned num_syms, unsigned max_co
 			unsigned ofs = next_sorted_ofs[c];
 			next_sorted_ofs[c] = ofs + 1;
 
-			code_sizes[i] = (uint8)(new_codesizes[ofs]);
+			code_sizes[i] = (u8)(new_codesizes[ofs]);
 		}
 	}
 

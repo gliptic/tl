@@ -48,9 +48,9 @@ static int tl_bs_mem_enlarge(tl_byte_sink_pushable* self)
 	size_t new_size = data->vec.size + (self->out - self->out_start);
 	data->vec.size = new_size;
 
-	tl_vector_reserve(data->vec, uint8, new_size * 2 + 16);
-	self->out_start = self->out = tl_vector_idx(data->vec, uint8, new_size);
-	self->out_end = tl_vector_idx(data->vec, uint8, data->vec.cap);
+	tl_vector_reserve(data->vec, u8, new_size * 2 + 16);
+	self->out_start = self->out = tl_vector_idx(data->vec, u8, new_size);
+	self->out_end = tl_vector_idx(data->vec, u8, data->vec.cap);
 
 	return 1;
 }
@@ -77,12 +77,12 @@ static void tl_bs_file_free_sink(tl_byte_sink_pushable* self) {
 	memfree(data);
 }
 
-static int tl_bs_file_seek_sink(tl_byte_sink_pushable* self, uint64 p) {
+static int tl_bs_file_seek_sink(tl_byte_sink_pushable* self, u64 p) {
 	tl_bs_file_data* data = (tl_bs_file_data*)self->ud;
 	return fseek(data->f, (uint32_t)p, SEEK_SET);
 }
 
-static uint64 tl_bs_file_tell_sink(tl_byte_sink_pushable* self) {
+static u64 tl_bs_file_tell_sink(tl_byte_sink_pushable* self) {
 	tl_bs_file_data* data = (tl_bs_file_data*)self->ud;
 	return ftell(data->f);
 }
@@ -178,22 +178,22 @@ void dummy_free_sink(tl_byte_sink_pushable* self) {
 	// Do nothing
 }
 
-static int dummy_seek_source(tl_byte_source_pullable* self, uint64 p) {
+static int dummy_seek_source(tl_byte_source_pullable* self, u64 p) {
 	(void)self; (void)p;
 	return -1;
 }
 
-static uint64 dummy_tell_source(tl_byte_source_pullable* self) {
+static u64 dummy_tell_source(tl_byte_source_pullable* self) {
 	(void)self;
 	return 0;
 }
 
-static int dummy_seek_sink(tl_byte_sink_pushable* self, uint64 p) {
+static int dummy_seek_sink(tl_byte_sink_pushable* self, u64 p) {
 	(void)self; (void)p;
 	return -1;
 }
 
-static uint64 dummy_tell_sink(tl_byte_sink_pushable* self) {
+static u64 dummy_tell_sink(tl_byte_sink_pushable* self) {
 	(void)self;
 	return 0;
 }
@@ -220,7 +220,7 @@ void tl_bs_free(tl_byte_source_pullable* src) {
 	src->free(src);
 }
 
-int tl_bs_pushn(tl_byte_sink_pushable* self, uint8 const* data, int n) {
+int tl_bs_pushn(tl_byte_sink_pushable* self, u8 const* data, int n) {
 	do {
 		int bytes = self->out_end - self->out;
 
@@ -234,7 +234,7 @@ int tl_bs_pushn(tl_byte_sink_pushable* self, uint8 const* data, int n) {
 	return n == 0;
 }
 
-int tl_bs_pulln(tl_byte_source_pullable* src, uint8* data, int n) {
+int tl_bs_pulln(tl_byte_source_pullable* src, u8* data, int n) {
 	do {
 		int bytes = src->buf_end - src->buf;
 
@@ -248,12 +248,12 @@ int tl_bs_pulln(tl_byte_source_pullable* src, uint8* data, int n) {
 	return n == 0;
 }
 
-int tl_bs_seek_sink(tl_byte_sink_pushable* self, uint64 p) {
+int tl_bs_seek_sink(tl_byte_sink_pushable* self, u64 p) {
 	tl_bs_flush(self);
 	return self->seek(self, p);
 }
 
-uint64 tl_bs_tell_sink(tl_byte_sink_pushable* self) {
+u64 tl_bs_tell_sink(tl_byte_sink_pushable* self) {
 	return self->tell(self) + (self->out - self->out_start);
 }
 

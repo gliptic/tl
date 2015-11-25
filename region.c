@@ -19,7 +19,7 @@ void* tl_region_alloc_newblock(tl_allocator* alloc, size_t rounded_size) {
 	r->alloc.cur = (uint8_t*)bl + TL_REGION_BLOCK_OVERHEAD;
 	r->alloc.end = (uint8_t*)bl + block_size;
 
-	assert(TL_IS_ALIGNED(r->cur, TL_REGION_MAX_ALIGN));
+	assert(TL_IS_ALIGNED(r->alloc.cur, TL_REGION_MAX_ALIGN));
 	
 	ret = r->alloc.cur;
 	r->alloc.cur += rounded_size;

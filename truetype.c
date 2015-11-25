@@ -10,9 +10,9 @@ typedef char tl_tt__check_size16[sizeof(int16_t)==2 ? 1 : -1];
 #define STBTT_malloc(x,u) memalloc(x)
 #define STBTT_free(x,u)   memfree(x)
 #define STBTT_assert(x) assert(x)
-#define STBTT_strlen(x) slen(x)
-#define STBTT_memcpy    mcpy
-#define STBTT_memset    mset
+#define STBTT_strlen(x) strlen(x)
+#define STBTT_memcpy    memcpy
+#define STBTT_memset    memset
 
 // #define your own STBTT_sort() to override this to avoid qsort
 #ifndef STBTT_sort

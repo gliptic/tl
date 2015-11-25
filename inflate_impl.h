@@ -12,12 +12,12 @@
 
 typedef struct zhuffman
 {
-	uint16 fast[1 << ZFAST_BITS];
-	uint16 firstcode[16];
+	u16 fast[1 << ZFAST_BITS];
+	u16 firstcode[16];
 	int maxcode[17];
-	uint16 firstsymbol[16];
-	uint8  size[288];
-	uint16 value[288];
+	u16 firstsymbol[16];
+	u8  size[288];
+	u16 value[288];
 } zhuffman;
 
 // States between yields
@@ -25,11 +25,11 @@ typedef struct zhuffman
 typedef struct tl_inflate_source {
 	tl_inflate base;
 
-	uint8 window[32768];
+	u8 window[32768];
 	int window_pos; // = 0
 	
 	int num_bits;
-	uint32 code_buffer;
+	u32 code_buffer;
 
 	zhuffman z_length, z_distance;
 
@@ -38,13 +38,13 @@ typedef struct tl_inflate_source {
 
 	// Compute huffman codes
 	zhuffman z_codelength;
-	uint8 lencodes[286+32+137];//padding for maximum single op
+	u8 lencodes[286+32+137];//padding for maximum single op
 	unsigned int i;
 	unsigned int hlit, hdist, hclen;
-	uint8 codelength_sizes[19];
+	u8 codelength_sizes[19];
 
 	// Uncompressed block
-	uint8 header[4];
+	u8 header[4];
 	
 	// Huffman block
 	int dist;

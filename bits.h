@@ -85,11 +85,13 @@ static unsigned int tl_reverse_bits32(unsigned int n) {
 # define tl_le16(x) tl_byteswap16(x)
 # define tl_be32(x) (x)
 # define tl_be16(x) (x)
+# define TL_ENDIAN_LOHI(lo, hi) hi lo
 #else
 # define tl_le32(x) (x)
 # define tl_le16(x) (x)
 # define tl_be32(x) tl_byteswap32(x)
 # define tl_be16(x) tl_byteswap16(x)
+# define TL_ENDIAN_LOHI(lo, hi) lo hi
 #endif
 
 TL_INLINE uint32_t tl_rol32(uint32_t x, int s) {

@@ -4,7 +4,7 @@
 #include "../algo.h"
 #include "../std.h"
 
-unsigned tl_polar_code_lengths(tl_ord_freq const* symbols, uint32 num_syms, uint8* code_sizes)
+unsigned tl_polar_code_lengths(tl_ord_freq const* symbols, u32 num_syms, u8* code_sizes)
 {
 	int tmp_freq[TL_POLAR_MAX_SYMBOLS];
 	unsigned i, tree_total, tree_total_bits;
@@ -52,7 +52,7 @@ unsigned tl_polar_code_lengths(tl_ord_freq const* symbols, uint32 num_syms, uint
 	{
 		unsigned codesize = (tree_total_bits - tl_top_bit(tmp_freq[i]) - 1);
 		max_code_size = tl_max(codesize, max_code_size);
-		code_sizes[symbols[i].sym] = (uint8)codesize;
+		code_sizes[symbols[i].sym] = (u8)codesize;
 	}
 
 	return max_code_size;

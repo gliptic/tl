@@ -219,6 +219,8 @@
       <Filter>windows</Filter>
     </ClCompile>
     <ClCompile Include="..\utf8.c" />
+    <ClCompile Include="..\strscan.c" />
+    <ClCompile Include="..\char.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inflate.h" />
@@ -283,6 +285,8 @@
     <ClInclude Include="..\io.h" />
     <ClInclude Include="..\rand.h" />
     <ClInclude Include="..\utf8.h" />
+    <ClInclude Include="..\strscan.h" />
+    <ClInclude Include="..\char.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="fdlibm">

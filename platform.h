@@ -163,6 +163,20 @@
 # endif
 #endif
 
+#if TL_GCC
+# define TL_ALIGN(n) __attribute__((aligned(n)))
+#elif TL_MSVCPP
+# define TL_ALIGN(n) __declspec(align(n))
+#endif
+
+#if !defined(TL_DEBUG)
+# if defined(NDEBUG)
+#  define TL_DEBUG 0
+# else
+#  define TL_DEBUG 1
+# endif
+#endif
+
 // Taken from LuaJIT
 #define TL_ASSERT_NAME2(name, line)	name ## line
 #define TL_ASSERT_NAME(line) TL_ASSERT_NAME2(tl_assert_, line)
@@ -175,6 +189,14 @@
 #endif
 
 #define TL_U64x(hi, lo) (((uint64_t)0x##hi << 32) + (uint64_t)0x##lo)
+
+#define TL_UNUSED(p) ((void)(p))
+
+// MSVCPP fix-ups
+#if TL_MSVCPP
+# pragma warning(disable: 4200) // zero-sized arrays are standard in C99+
+# pragma warning(disable: 4204) // non-constant initializers are standard in C99+
+#endif
 
 #endif // UUID_728FDBF69FF04497D59A6F8E9506DF64
 

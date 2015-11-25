@@ -80,12 +80,29 @@ TL_INLINE uint32_t tl_read_be32(uint8_t const* p) { return tl_be32(*(uint32_t co
 TL_INLINE uint16_t tl_read_le16(uint8_t const* p) { return tl_le16(*(uint16_t const*)p); }
 TL_INLINE uint16_t tl_read_be16(uint8_t const* p) { return tl_be16(*(uint16_t const*)p); }
 
+TL_INLINE uint32_t tl_read32(uint8_t const* p) { return *(uint32_t const*)p; }
+TL_INLINE uint16_t tl_read16(uint8_t const* p) { return *(uint16_t const*)p; }
+
+TL_INLINE void tl_write32(uint8_t* p, uint32_t v) { *(uint32_t*)p = v; }
+TL_INLINE void tl_write16(uint8_t* p, uint16_t v) { *(uint16_t*)p = v; }
+
+TL_INLINE void tl_write_le32(uint8_t* p, uint32_t v) { *(uint32_t*)p = tl_le32(v); }
+TL_INLINE void tl_write_be32(uint8_t* p, uint32_t v) { *(uint32_t*)p = tl_be32(v); }
+TL_INLINE void tl_write_le16(uint8_t* p, uint16_t v) { *(uint16_t*)p = tl_le16(v); }
+TL_INLINE void tl_write_be16(uint8_t* p, uint16_t v) { *(uint16_t*)p = tl_be16(v); }
+
+
 #else
 
 TL_INLINE uint32_t tl_read_le32(uint8_t const* p) { return p[0] + ((uint32_t)p[1] << 8) + ((uint32_t)p[2] << 16) + ((uint32_t)p[3] << 24); }
 TL_INLINE uint32_t tl_read_be32(uint8_t const* p) { return p[3] + ((uint32_t)p[2] << 8) + ((uint32_t)p[1] << 16) + ((uint32_t)p[0] << 24); }
 TL_INLINE uint16_t tl_read_le16(uint8_t const* p) { return p[0] + ((uint16_t)p[1] << 8); }
 TL_INLINE uint16_t tl_read_be16(uint8_t const* p) { return p[1] + ((uint16_t)p[0] << 8); }
+
+// TODO tl_write*
+
+#define tl_read32 tl_read_le32
+#define tl_read16 tl_read_le16
 
 #endif
 

@@ -23,12 +23,12 @@ typedef struct tl_png {
 
 TL_INF_API tl_png* tl_png_create(void);
 TL_INF_API tl_png* tl_png_create_file(char const* path);
-TL_INF_API int tl_png_load(tl_png* self, uint32 req_comp);
+TL_INF_API int tl_png_load(tl_png* self, u32 req_comp);
 TL_INF_API void tl_png_destroy(tl_png* self);
 
-TL_INLINE uint8* tl_png_release_img(tl_png* self)
+TL_INLINE u8* tl_png_release_img(tl_png* self)
 {
-	uint8* img = self->img.pixels;
+	u8* img = self->img.pixels;
 	self->img.pixels = NULL;
 	return img;
 }
