@@ -23,8 +23,8 @@ extern void main();
 #define PC_53	0x200
 #define PC_64	0x300
 
-void __declspec(noinline) mainCRTStartup(void)
-{
+void __declspec(noinline) mainCRTStartup(void) {
+
 	// TODO: Adapt to different versions of VC. This works for VC++ 10-14 at least.
 	_PVFV *pfbegin = (_PVFV *)__xi_a, *pfend = (_PVFV *)__xi_z;
 

@@ -6,6 +6,10 @@
 #include "cstdint.h"
 #include "platform.h"
 
+#if TL_CPP
+extern "C" {
+#endif
+
 #define tl_failure      (-1)
 #define tl_would_block  (-2)
 #define tl_conn_reset   (-3)
@@ -38,7 +42,7 @@ TL_SOCK_API int tl_recvfrom(tl_socket sock, void* msg, size_t len, tl_internet_a
 	
 TL_SOCK_API int tl_opt_error(tl_socket sock);
 	
-#define tl_socket_bind_any(sock) (tl_socket_bind((sock), 0))
+#define tl_socket_bind_any(sock) (tl_bind((sock), 0))
 
 #define TL_SS_MAXSIZE (128)                 // Maximum size
 #define TL_SS_ALIGNSIZE (sizeof(int64_t)) // Desired alignment
@@ -47,17 +51,17 @@ TL_SOCK_API int tl_opt_error(tl_socket sock);
 
 typedef struct tl_sockaddr_storage
 {
-    short ss_family;               // Address family.
+	short ss_family;               // Address family.
 
-    char _ss_pad1[TL_SS_PAD1SIZE];  // 6 byte pad, this is to make
-                                   //   implementation specific pad up to
-                                   //   alignment field that follows explicit
-                                   //   in the data structure
-    int64_t _ss_align;            // Field to force desired structure
-    char _ss_pad2[TL_SS_PAD2SIZE];  // 112 byte pad to achieve desired size;
-                                   //   _SS_MAXSIZE value minus size of
-                                   //   ss_family, __ss_pad1, and
-                                   //   __ss_align fields is 112
+	char _ss_pad1[TL_SS_PAD1SIZE];  // 6 byte pad, this is to make
+								   //   implementation specific pad up to
+								   //   alignment field that follows explicit
+								   //   in the data structure
+	int64_t _ss_align;            // Field to force desired structure
+	char _ss_pad2[TL_SS_PAD2SIZE];  // 112 byte pad to achieve desired size;
+								   //   _SS_MAXSIZE value minus size of
+								   //   ss_family, __ss_pad1, and
+								   //   __ss_align fields is 112
 } tl_sockaddr_storage;
 
 typedef struct tl_internet_addr
@@ -78,12 +82,16 @@ TL_SOCK_API int tl_internet_addr_valid(tl_internet_addr* self);
 	
 TL_SOCK_API int  tl_internet_addr_port(tl_internet_addr const* self);
 TL_SOCK_API void tl_internet_addr_set_port(tl_internet_addr* self, int port_new);
-    
+	
 TL_SOCK_API uint32_t tl_internet_addr_ip(tl_internet_addr const* self);
 TL_SOCK_API void     tl_internet_addr_set_ip(tl_internet_addr* self, uint32_t ip_new);
-    
+	
 TL_SOCK_API void tl_internet_addr_reset(tl_internet_addr* self);
 
 TL_SOCK_API int tl_internet_addr_eq(tl_internet_addr const*, tl_internet_addr const*);
+
+#if TL_CPP
+}
+#endif
 
 #endif // UUID_BEDBCF086FF249445BE6E39168A62865

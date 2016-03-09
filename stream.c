@@ -1,8 +1,8 @@
 #include "stream.h"
-#include "vector.h"
+#include "vector.hpp"
 #include "std.h"
 
-//#include <stdio.h>
+#include <stdio.h>
 //#include <malloc.h>
 //#include <string.h>
 
@@ -222,7 +222,7 @@ void tl_bs_free(tl_byte_source_pullable* src) {
 
 int tl_bs_pushn(tl_byte_sink_pushable* self, u8 const* data, int n) {
 	do {
-		int bytes = self->out_end - self->out;
+		int bytes = (int)(self->out_end - self->out);
 
 		if(bytes > n) bytes = n;
 		memcpy(self->out, data, bytes);
@@ -236,7 +236,7 @@ int tl_bs_pushn(tl_byte_sink_pushable* self, u8 const* data, int n) {
 
 int tl_bs_pulln(tl_byte_source_pullable* src, u8* data, int n) {
 	do {
-		int bytes = src->buf_end - src->buf;
+		int bytes = (int)(src->buf_end - src->buf);
 
 		if(bytes > n) bytes = n;
 		memcpy(data, src->buf, bytes);

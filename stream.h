@@ -4,8 +4,12 @@
 #include "config.h"
 #include "platform.h"
 #include "cstdint.h"
-#include "vector.h"
+#include "vector.hpp"
 #include <stddef.h>
+
+#if TL_CPP
+extern "C" {
+#endif
 
 typedef struct tl_byte_source {
 	u8* buf;
@@ -31,10 +35,10 @@ typedef struct tl_byte_sink_pushable {
 	u8* out;
 	u8* out_end;
 	void* ud;
-	int      (*push)(struct tl_byte_sink_pushable*);
-	int      (*seek)(struct tl_byte_sink_pushable*, uint64_t);
-	uint64_t (*tell)(struct tl_byte_sink_pushable*);
-	void     (*free)(struct tl_byte_sink_pushable*);
+	int  (*push)(struct tl_byte_sink_pushable*);
+	int  (*seek)(struct tl_byte_sink_pushable*, u64);
+	u64  (*tell)(struct tl_byte_sink_pushable*);
+	void (*free)(struct tl_byte_sink_pushable*);
 } tl_byte_sink_pushable;
 
 #define tl_bs_check(source) ((source)->buf != (source)->buf_end)
@@ -124,5 +128,9 @@ TL_STREAM_API void   tl_bs_free_sink(tl_byte_sink_pushable* self);
 /* Memory stream */
 TL_STREAM_API int       tl_bs_mem_sink(tl_byte_sink_pushable* sink);
 TL_STREAM_API tl_vector tl_bs_mem_release_vector(tl_byte_sink_pushable* sink);
+
+#if TL_CPP
+}
+#endif
 
 #endif // UUID_F3740CE70E6B45893FAD7C9B2BC6A2C0

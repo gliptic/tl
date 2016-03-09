@@ -13,8 +13,7 @@ void sprint(char const* s) {
 		s,
 		(DWORD)strlen(s),
 		&dummy,
-		NULL
-		);
+		NULL);
 }
 
 static char* utos(uint32_t v, char* ends) {

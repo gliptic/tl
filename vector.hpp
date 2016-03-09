@@ -2,12 +2,14 @@
 #define UUID_C8B889F6B0254CE3F7AE58B920794A20
 
 #include <stddef.h>
-//#include <stdlib.h>
 #include "std.h"
 
-#include <assert.h>
 #include "cstdint.h"
 #include "platform.h"
+
+#if TL_CPP
+extern "C" {
+#endif
 
 #define tl_vector_new(v, t, n) do { \
 	size_t n_ = (n); \
@@ -117,5 +119,89 @@ TL_INLINE void name##_pushback(name* V, t e) { tl_vector_pushback(V->v, t, e); }
 TL_INLINE void name##_enlarge(name* V, size_t extra) { tl_vector_enlarge(V->v, t, extra); } \
 TL_INLINE void name##_post_enlarge(name* V, size_t extra) { tl_vector_post_enlarge(V->v, t, extra); } \
 TL_INLINE tl_vector* name##_super(name* V) { return &V->v; }
+
+#if TL_CPP
+} // extern "C"
+
+namespace tl {
+
+template<typename T>
+struct vector {
+	tl_vector v;
+
+	vector() { tl_vector_new_empty(v); }
+	vector(vector&& other) : v(other.v) { other.v.cap = 0; other.v.size = 0; other.v.impl = 0; }
+	vector& operator=(vector&& other) { this->v = other.v; other.v.cap = 0; other.v.size = 0; other.v.impl = 0; }
+
+	void push_back(T const& value) { tl_vector_pushback(v, T, value); }
+	void push_back(T&& value) { tl_vector_pushback(v, T, value); }
+
+	T* begin() {
+		return tl_vector_idx(v, T, 0);
+	}
+
+	T* end() {
+		return tl_vector_idx(v, T, v.size);
+	}
+
+	T* cap_end() {
+		return tl_vector_idx(v, T, v.cap);
+	}
+
+	usize size() const {
+		return v.size;
+	}
+
+	void enlarge(usize extra) {
+		tl_vector_enlarge(v, T, extra);
+	}
+
+	void unsafe_set_size(usize new_size) {
+		v.size = new_size;
+	}
+
+	void clear() {
+		destroy_all();
+		v.size = 0;
+	}
+
+	void reserve(usize cap) {
+		tl_vector_reserve(v, T, cap);
+	}
+
+	template<typename U>
+	void unsafe_push(U const& e) {
+		TL_STATIC_ASSERT((sizeof(U) / sizeof(T)) * sizeof(T) == sizeof(U));
+
+		usize mult = sizeof(U) / sizeof(T);
+		usize s = size();
+		if(s + mult > v.cap) tl_vector_enlarge(v, T, mult);
+		*(U *)((T *)v.impl + s) = e;
+		v.size = s + mult;
+	}
+
+	T* unsafe_alloc(usize count) {
+		reserve(v.size + count);
+		T* p = begin() + v.size;
+		v.size += count;
+		return p;
+	}
+
+	~vector() {
+		destroy_all();
+		free(v.impl);
+	}
+
+private:
+
+	void destroy_all() {
+		tl_vector_foreach(v, T, p, {
+			p->~T();
+		});
+	}
+};
+
+}
+#endif
 
 #endif // UUID_C8B889F6B0254CE3F7AE58B920794A20

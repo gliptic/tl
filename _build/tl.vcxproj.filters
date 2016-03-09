@@ -221,13 +221,14 @@
     <ClCompile Include="..\utf8.c" />
     <ClCompile Include="..\strscan.c" />
     <ClCompile Include="..\char.c" />
+    <ClCompile Include="..\windows\runtime_vcpp.cpp">
+      <Filter>windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inflate.h" />
-    <ClInclude Include="..\stream.h" />
     <ClInclude Include="..\platform.h" />
     <ClInclude Include="..\cstdint.h" />
-    <ClInclude Include="..\vector.h" />
     <ClInclude Include="..\png.h" />
     <ClInclude Include="..\coro.h" />
     <ClInclude Include="..\impl.h" />
@@ -287,6 +288,10 @@
     <ClInclude Include="..\utf8.h" />
     <ClInclude Include="..\strscan.h" />
     <ClInclude Include="..\char.h" />
+    <ClInclude Include="..\vec.hpp" />
+    <ClInclude Include="..\vector.hpp" />
+    <ClInclude Include="..\stream.h" />
+    <ClInclude Include="..\stream.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="fdlibm">

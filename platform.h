@@ -196,6 +196,10 @@
 #if TL_MSVCPP
 # pragma warning(disable: 4200) // zero-sized arrays are standard in C99+
 # pragma warning(disable: 4204) // non-constant initializers are standard in C99+
+
+// Turn off stdio.h silliness
+#define _NO_CRT_STDIO_INLINE 1
+
 #endif
 
 #endif // UUID_728FDBF69FF04497D59A6F8E9506DF64
