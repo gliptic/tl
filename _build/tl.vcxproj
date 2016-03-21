@@ -779,6 +779,7 @@
     <ClInclude Include="..\truetype.h" />
     <ClInclude Include="..\utf8.h" />
     <ClInclude Include="..\vec.hpp" />
+    <ClInclude Include="..\vector.h" />
     <ClInclude Include="..\vector.hpp" />
     <ClInclude Include="..\vorbis.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>

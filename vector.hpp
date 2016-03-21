@@ -1,207 +1,222 @@
 #ifndef UUID_C8B889F6B0254CE3F7AE58B920794A20
 #define UUID_C8B889F6B0254CE3F7AE58B920794A20
 
-#include <stddef.h>
 #include "std.h"
+#include <stddef.h>
+#include <algorithm>
+#include <utility>
 
 #include "cstdint.h"
 #include "platform.h"
 
-#if TL_CPP
-extern "C" {
-#endif
-
-#define tl_vector_new(v, t, n) do { \
-	size_t n_ = (n); \
-	tl_vector* v_ = &(v); \
-	v_->cap = n_; \
-	v_->size = 0; \
-	if(n_ > SIZE_MAX/sizeof(t)) \
-		v_->impl = NULL; \
-	else \
-		v_->impl = memalloc(sizeof(t)*(n_)); \
-} while(0)
-
-#define tl_vector_new_empty(v) do { \
-	tl_vector* v_ = &(v); \
-	v_->cap = 0; \
-	v_->size = 0; \
-	v_->impl = NULL; \
-} while(0)
-
-#define tl_vector_pushback(v, t, e) do { \
-	tl_vector* p_v_ = &(v); \
-	size_t s_ = tl_vector_size(*p_v_); \
-	if(s_ >= p_v_->cap) tl_vector_enlarge(*p_v_, t, 1); \
-	((t*)p_v_->impl)[s_++] = (e); \
-	p_v_->size = s_; \
-} while(0)
-
-#define tl_vector_foreach(v, t, var, body) do { \
-	tl_vector* fv_ = &(v); \
-	t* var = (t*)fv_->impl; \
-	t* e_ = ((t*)var + fv_->size); \
-	for(; var != e_; ++var) \
-		body \
-} while(0)
-
-#define tl_vector_filtereach(v, t, var, body) do { \
-	tl_vector* fi_v_##var = &(v); \
-	size_t idx_ = 0; \
-	for(; idx_ < fi_v_##var->size; ++idx_) { \
-		int remove = 0; \
-		t* var = (t*)fi_v_##var->impl + idx_; \
-		body \
-		if(remove) tl_vector_remove_reorder(*fi_v_##var, t, idx_);  \
-		else ++idx_; \
-	} \
-} while(0)
-
-#define tl_vector_remove_reorder(v, t, idx) do { \
-	tl_vector* rr_v_ = &(v); \
-	t* base_ = (t*)rr_v_->impl; \
-	size_t s_ = tl_vector_size(*rr_v_); \
-	size_t rr_idx_ = (idx); \
-	assert(rr_idx_ < s_); \
-	base_[rr_idx_] = base_[s_ - 1]; \
-	--rr_v_->size; \
-} while(0)
-
-#define tl_vector_reserve(v, t, newcap) do { \
-	tl_vector* e_v_ = &(v); \
-	void* new_impl_; \
-	size_t newcap_ = (newcap); \
-	if(newcap_ > e_v_->cap) { \
-		if(newcap_ > SIZE_MAX/sizeof(t) \
-		|| !(new_impl_ = memrealloc(e_v_->impl, sizeof(t)*newcap_, sizeof(t)*e_v_->cap))) { \
-			memfree(e_v_->impl); new_impl_ = NULL; \
-		} \
-		e_v_->impl = new_impl_; \
-		e_v_->cap = newcap_; \
-	} \
-} while(0)
-
-#define tl_vector_enlarge(v, t, extra) do { \
-	tl_vector* e_v_ = &(v); \
-	void* new_impl_; \
-	size_t newcap_ = e_v_->size * 2 + (extra); \
-	if(newcap_ > SIZE_MAX/sizeof(t) \
-	|| !(new_impl_ = memrealloc(e_v_->impl, sizeof(t)*newcap_, sizeof(t)*e_v_->cap))) { \
-		memfree(e_v_->impl); new_impl_ = NULL; \
-	} \
-	e_v_->impl = new_impl_; \
-	e_v_->cap = newcap_; \
-} while(0)
-
-#define tl_vector_idx(v, t, i) ((t*)(v).impl + (i))
-#define tl_vector_el(v, t, i) (*tl_vector_idx(v,t,i))
-#define tl_vector_size(v) ((v).size)
-#define tl_vector_post_enlarge(v, t, n) ((v).size += (n))
-#define tl_vector_free(v) free((v).impl)
-
-typedef struct tl_vector {
-	size_t cap;
-	size_t size;
-	void* impl;
-} tl_vector;
-
-#define tl_def_vector(name, t) \
-typedef struct name { \
-	tl_vector v; \
-} name;  \
-TL_INLINE void name##_init_empty(name* V) { tl_vector_new_empty(V->v); } \
-TL_INLINE void name##_init(name* V, size_t n) { tl_vector_new(V->v, t, n); } \
-TL_INLINE t name##_el(name* V, size_t i) { return tl_vector_el(V->v, t, i); } \
-TL_INLINE t* name##_idx(name* V, size_t i) { return tl_vector_idx(V->v, t, i); } \
-TL_INLINE size_t name##_size(name* V) { return tl_vector_size(V->v); } \
-TL_INLINE void name##_destroy(name* V) { tl_vector_free(V->v); } \
-TL_INLINE void name##_pushback(name* V, t e) { tl_vector_pushback(V->v, t, e); } \
-TL_INLINE void name##_enlarge(name* V, size_t extra) { tl_vector_enlarge(V->v, t, extra); } \
-TL_INLINE void name##_post_enlarge(name* V, size_t extra) { tl_vector_post_enlarge(V->v, t, extra); } \
-TL_INLINE tl_vector* name##_super(name* V) { return &V->v; }
-
-#if TL_CPP
-} // extern "C"
+using std::move;
 
 namespace tl {
 
 template<typename T>
-struct vector {
-	tl_vector v;
+struct vector_slice {
+	T *b, *e;
 
-	vector() { tl_vector_new_empty(v); }
-	vector(vector&& other) : v(other.v) { other.v.cap = 0; other.v.size = 0; other.v.impl = 0; }
-	vector& operator=(vector&& other) { this->v = other.v; other.v.cap = 0; other.v.size = 0; other.v.impl = 0; }
+	vector_slice()
+		: b(0), e(0) {
+	}
 
-	void push_back(T const& value) { tl_vector_pushback(v, T, value); }
-	void push_back(T&& value) { tl_vector_pushback(v, T, value); }
+	vector_slice(T* b_init, T* e_init)
+		: b(b_init), e(e_init) {
+	}
 
 	T* begin() {
-		return tl_vector_idx(v, T, 0);
+		return this->b;
 	}
 
 	T* end() {
-		return tl_vector_idx(v, T, v.size);
-	}
-
-	T* cap_end() {
-		return tl_vector_idx(v, T, v.cap);
+		return this->e;
 	}
 
 	usize size() const {
-		return v.size;
+		return this->e - this->b;
 	}
 
-	void enlarge(usize extra) {
-		tl_vector_enlarge(v, T, extra);
+	usize size_in_bytes() const {
+		return (u8 const *)this->e - (u8 const *)this->b;
+	}
+
+	bool empty() const {
+		return this->b == this->e;
+	}
+
+	vector_slice<T> unsafe_cut_front_in_bytes(usize bytes) {
+		return vector_slice((T *)((u8 *)this->b + bytes), this->e);
+	}
+
+	vector_slice<T> unsafe_limit_size_in_bytes(usize bytes) {
+		return vector_slice(this->b, (T *)((u8 *)this->b + bytes));
+	}
+
+	template<typename U>
+	U* unsafe_read() {
+		TL_STATIC_ASSERT((sizeof(U) / sizeof(T)) * sizeof(T) == sizeof(U));
+
+		if (size_in_bytes() >= sizeof(U)) {
+			U *cur = (U *)this->b;
+			this->b = (T *)((u8 *)this->b + sizeof(U));
+			return cur;
+		} else {
+			return 0;
+		}
+	}
+};
+
+template<typename T> // , usize InlineSize = (64 + sizeof(T) - 1) / sizeof(T)
+struct vector : protected vector_slice<T> {
+
+	T *c;
+
+	using vector_slice::begin;
+	using vector_slice::end;
+	using vector_slice::size;
+	using vector_slice::empty;
+	using vector_slice::size_in_bytes;
+
+	vector()
+		: c(0) {
+	}
+
+	// TODO: How to limit this to T with trivial copy?
+	vector(T const* src, usize len) {
+		usize len_in_bytes = len * sizeof(T);
+		this->b = (T *)memalloc(len_in_bytes);
+		memcpy(this->b, src, len_in_bytes);
+		this->c = this->e = (T *)((u8 *)this->b + len_in_bytes);
+	}
+
+	vector(vector&& other)
+		: vector_slice(other.b, other.e), c(other.c) {
+
+		other.b = other.e = other.c = 0;
+	}
+
+	vector_slice slice() {
+		return *this;
+	}
+
+	vector& operator=(vector&& other) {
+
+		this->b = other.b;
+		this->e = other.e;
+		this->c = other.c;
+
+		other.b = other.e = other.c = 0;
+		return *this;
+	}
+
+	void push_back(T const& value) {
+		if(this->cap_left_in_bytes() < sizeof(T))
+			enlarge(sizeof(T));
+		new (this->e) T(value);
+		++this->e;
+	}
+
+	void push_back(T&& value) {
+		if(this->cap_left_in_bytes() < sizeof(T))
+			enlarge(sizeof(T));
+		new (this->e) T(move(value));
+		++this->e;
+	}
+
+	T* cap_end() {
+		return this->c;
+	}
+
+	usize cap_in_bytes() const {
+		return (u8 const *)this->c - (u8 const *)this->b;
+	}
+
+	usize cap_left_in_bytes() const {
+		return (u8 const *)this->c - (u8 const *)this->e;
+	}
+	
+	void reserve(usize new_cap) {
+		if(new_cap * sizeof(T) > cap_in_bytes()) {
+			reserve_bytes(new_cap * sizeof(T));
+		}
+	}
+
+	void reserve_in_bytes(usize new_cap_in_bytes) {
+		if(new_cap_in_bytes > cap_in_bytes()) {
+			reserve_bytes(new_cap_in_bytes);
+		}
+	}
+
+	void reserve_bytes(usize new_cap_in_bytes) {
+		T* new_b;
+		usize size_bytes = size_in_bytes();
+		if (new_cap_in_bytes < size_bytes
+		 || !(new_b = (T *)memrealloc(this->b, new_cap_in_bytes, cap_in_bytes()))) {
+			memfree(this->b);
+			new_b = NULL;
+		}
+
+		this->b = new_b;
+		this->e = (T *)((u8 *)new_b + size_bytes);
+		this->c = (T *)((u8 *)new_b + new_cap_in_bytes);
+	}
+
+	void enlarge(usize extra_in_bytes) {
+		reserve_in_bytes(size_in_bytes() * 2 + extra_in_bytes);
 	}
 
 	void unsafe_set_size(usize new_size) {
-		v.size = new_size;
+		this->e = this->b + new_size;
 	}
 
 	void clear() {
 		destroy_all();
-		v.size = 0;
-	}
-
-	void reserve(usize cap) {
-		tl_vector_reserve(v, T, cap);
-	}
-
-	template<typename U>
-	void unsafe_push(U const& e) {
-		TL_STATIC_ASSERT((sizeof(U) / sizeof(T)) * sizeof(T) == sizeof(U));
-
-		usize mult = sizeof(U) / sizeof(T);
-		usize s = size();
-		if(s + mult > v.cap) tl_vector_enlarge(v, T, mult);
-		*(U *)((T *)v.impl + s) = e;
-		v.size = s + mult;
-	}
-
-	T* unsafe_alloc(usize count) {
-		reserve(v.size + count);
-		T* p = begin() + v.size;
-		v.size += count;
-		return p;
+		this->e = this->b;
 	}
 
 	~vector() {
 		destroy_all();
-		free(v.impl);
+		memfree(this->b);
 	}
 
 private:
 
 	void destroy_all() {
-		tl_vector_foreach(v, T, p, {
+		for (T* p = this->b; p != this->e; ++p) {
 			p->~T();
-		});
+		}
+	}
+};
+
+struct mixed_buffer : tl::vector<u8> {
+	mixed_buffer() {
+	}
+
+	mixed_buffer(mixed_buffer&& other)
+		: vector(move(other)) {
+	}
+
+	template<typename U>
+	void unsafe_push(U const& v) {
+		if(this->cap_left_in_bytes() < sizeof(U))
+			enlarge(sizeof(U));
+		new (this->e) U(v);
+		this->e += sizeof(U);
+	}
+
+	u8* unsafe_alloc(usize count) {
+		reserve_bytes(size_in_bytes() + count);
+		u8* p = end();
+		this->e += count;
+		return p;
+	}
+
+	vector& operator=(mixed_buffer&& other) {
+		return vector::operator=(move(other));
 	}
 };
 
 }
-#endif
 
 #endif // UUID_C8B889F6B0254CE3F7AE58B920794A20

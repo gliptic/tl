@@ -292,6 +292,7 @@
     <ClInclude Include="..\vector.hpp" />
     <ClInclude Include="..\stream.h" />
     <ClInclude Include="..\stream.hpp" />
+    <ClInclude Include="..\vector.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="fdlibm">

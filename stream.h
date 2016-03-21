@@ -4,7 +4,7 @@
 #include "config.h"
 #include "platform.h"
 #include "cstdint.h"
-#include "vector.hpp"
+#include "vector.h"
 #include <stddef.h>
 
 #if TL_CPP
