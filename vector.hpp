@@ -67,8 +67,90 @@ struct vector_slice {
 	}
 };
 
-template<typename T> // , usize InlineSize = (64 + sizeof(T) - 1) / sizeof(T)
-struct vector : protected vector_slice<T> {
+struct memalloc_allocator {
+	template<typename T>
+	void alloc_empty(T& slice) {
+	}
+
+	template<typename T>
+	void* alloc_slice(T& slice, usize cap_in_bytes) {
+		return memalloc(cap_in_bytes);
+	}
+
+	template<typename T>
+	void* realloc_slice(T& slice, usize new_cap_in_bytes, usize old_cap_in_bytes) {
+		void* new_b;
+
+		usize size_bytes = slice.size_in_bytes();
+
+		if (new_cap_in_bytes < size_bytes
+		 || !(new_b = memrealloc(slice.b, new_cap_in_bytes, old_cap_in_bytes))) {
+			memfree(slice.b);
+			new_b = 0;
+		}
+
+		return new_b;
+	}
+
+	template<typename T>
+	void free_slice(T& slice) {
+		memfree(slice.b);
+	}
+};
+
+template<typename T, usize InlineSize>
+struct small_vector;
+
+template<typename T, usize InlineSize>
+struct inline_allocator : protected memalloc_allocator {
+	static usize const inline_size_in_bytes = InlineSize * sizeof(T);
+
+	template<typename T>
+	void alloc_empty(T& slice) {
+	}
+
+	template<typename T>
+	void* alloc_slice(T& slice, usize cap_in_bytes) {
+		if (cap_in_bytes <= inline_size_in_bytes) {
+			auto& inline_slice = static_cast<small_vector<T, InlineSize>&>(slice);
+			return inline_slice.storage;
+		}
+
+		return memalloc(cap_in_bytes);
+	}
+
+	template<typename T>
+	void* realloc_slice(T& slice, usize new_cap_in_bytes, usize old_cap_in_bytes) {
+		void* new_b;
+
+		usize size_bytes = slice.size_in_bytes();
+		void* old_b = slice.b;
+		auto& inline_slice = static_cast<small_vector<T, InlineSize>&>(slice);
+
+		if (old_b == inline_slice.storage) {
+			old_b = NULL;
+		}
+
+		if (new_cap_in_bytes < size_bytes
+		 || !(new_b = memrealloc(old_b, new_cap_in_bytes, old_cap_in_bytes))) {
+			memfree(old_b);
+			new_b = 0;
+		} else if (!old_b) {
+			memcpy(new_b, slice.b, size_bytes);
+		}
+
+		return new_b;
+	}
+
+	template<typename T>
+	void free_slice(T& slice) {
+		memfree(slice.b);
+	}
+
+};
+
+template<typename T, typename Allocator = memalloc_allocator, typename DerivedT = vector<T, Allocator>> // , usize InlineSize = (64 + sizeof(T) - 1) / sizeof(T)
+struct vector : protected vector_slice<T>, private Allocator {
 
 	T *c;
 
@@ -85,7 +167,7 @@ struct vector : protected vector_slice<T> {
 	// TODO: How to limit this to T with trivial copy?
 	vector(T const* src, usize len) {
 		usize len_in_bytes = len * sizeof(T);
-		this->b = (T *)memalloc(len_in_bytes);
+		this->b = (T *)this->Allocator::alloc_slice(static_cast<vector_slice<T>&>(*this), len_in_bytes);
 		memcpy(this->b, src, len_in_bytes);
 		this->c = this->e = (T *)((u8 *)this->b + len_in_bytes);
 	}
@@ -149,14 +231,10 @@ struct vector : protected vector_slice<T> {
 	}
 
 	void reserve_bytes(usize new_cap_in_bytes) {
-		T* new_b;
 		usize size_bytes = size_in_bytes();
-		if (new_cap_in_bytes < size_bytes
-		 || !(new_b = (T *)memrealloc(this->b, new_cap_in_bytes, cap_in_bytes()))) {
-			memfree(this->b);
-			new_b = NULL;
-		}
 
+		T *new_b = (T *)this->Allocator::realloc_slice(static_cast<vector_slice<T>&>(*this), new_cap_in_bytes, cap_in_bytes());
+		
 		this->b = new_b;
 		this->e = (T *)((u8 *)new_b + size_bytes);
 		this->c = (T *)((u8 *)new_b + new_cap_in_bytes);
@@ -177,7 +255,7 @@ struct vector : protected vector_slice<T> {
 
 	~vector() {
 		destroy_all();
-		memfree(this->b);
+		this->Allocator::free_slice(static_cast<vector_slice<T>&>(*this));
 	}
 
 private:
