@@ -108,5 +108,8 @@ typedef int64_t   i64;
 typedef size_t    usize;
 typedef ptrdiff_t isize;
 
+typedef double f64;
+typedef float f32;
+
 #endif // UUID_B6BA276BE4584C6984F223B4F0C5267F
 

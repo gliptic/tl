@@ -1,237 +1,412 @@
-#ifndef UUID_604BD56BB2F2436A4CC319ACA78603F3
-#define UUID_604BD56BB2F2436A4CC319ACA78603F3
+#ifndef TL_VEC_HPP
+#define TL_VEC_HPP
 
-#include <cmath>
+#include "std.h"
+#include <stddef.h>
+#include <algorithm>
+#include <utility>
+
+#include "cstdint.h"
+#include "platform.h"
+
+using std::move;
 
 namespace tl {
 
-// Only N == 2 supported at the moment
 
-template<typename T, int N>
-struct basic_vec
-{
+struct VecSliceAbstract {
+private:
+	u8 *b;
+	u8 *e;
+public:
+
+	VecSliceAbstract(VecSliceAbstract const&) = default;
+	VecSliceAbstract& operator=(VecSliceAbstract const&) = default;
+	
+	VecSliceAbstract() : b(0), e(0) {
+	}
+
+	VecSliceAbstract(u8* b_init, u8* e_init) : b(b_init), e(e_init) {
+	}
+
+	VecSliceAbstract(VecSliceAbstract&& other)
+		: b(other.b), e(other.e) {
+		other.b = other.e = 0;
+	}
+
+	VecSliceAbstract& operator=(VecSliceAbstract&& other) {
+		this->b = other.b;
+		this->e = other.e;
+		other.b = other.e = 0;
+		return *this;
+	}
+
+	u8* unsafe_inc_size_bytes(usize amount) {
+		u8* old_e = this->e;
+		this->e += amount;
+		return old_e;
+	}
+
+	void unsafe_cut_front_bytes(usize amount) {
+		this->b += amount;
+	}
+
+	void unsafe_cut_back_bytes(usize amount) {
+		this->e -= amount;
+	}
+
+	void unsafe_set_size_bytes(usize new_size) {
+		this->e = this->b + new_size;
+	}
+
+	u8** end_bytes_ptr() { return &this->e; }
+	u8** begin_bytes_ptr() { return &this->b; }
+
+	u8* end_bytes() const { return this->e; }
+	u8* begin_bytes() const { return this->b; }
+	
+	usize size_bytes() const { return this->e - this->b; }
+	bool empty() const { return this->b == this->e; }
 };
 
 template<typename T>
-struct basic_vec<T, 2>
-{
-	typedef T manip_t;
-	typedef T coord_type;
+struct VecSlice : protected VecSliceAbstract {
+	using VecSliceAbstract::size_bytes;
+	using VecSliceAbstract::empty;
 
-	basic_vec()
-		: x(T(0)), y(T(0))
-	{ }
+	VecSlice() = default;
+	VecSlice(VecSlice const&) = default;
+	VecSlice& operator=(VecSlice const&) = default;
 
-	template<class T2>
-	explicit basic_vec(basic_vec<T2, 2> const& b)
-		: x(static_cast<T>(b.x)), y(static_cast<T>(b.y))
-	{ }
-
-	/// Vector from a to b.
-	///
-	basic_vec(basic_vec const& a, basic_vec const& b)
-		: x(b.x - a.x), y(b.y - a.y)
-	{ }
-
-	basic_vec(T const& x_, T const& y_)
-		: x(x_), y(y_)
-	{ }
-
-	template<class T2>
-	basic_vec(T2 const& x, T2 const& y)
-		: x(static_cast<T>(x)), y(static_cast<T>(y))
-	{ }
-
-	void zero()
-	{
-		x = T(0); y = T(0);
+	template<usize S>
+	VecSlice(T (&arr)[S])
+		: VecSliceAbstract((u8 *)arr, (u8 *)(arr + S)) {
 	}
 
-	basic_vec& operator += (basic_vec const& rhs)
-	{
-		x += rhs.x; y += rhs.y;
-		return *this;
+	VecSlice(T* b_init, T* e_init)
+		: VecSliceAbstract((u8 *)b_init, (u8 *)e_init) {
+	}
+	
+	T& operator[](usize index) const {
+		return this->begin()[index];
 	}
 
-	basic_vec& operator -= (basic_vec const& rhs)
-	{
-		x -= rhs.x; y -= rhs.y;
-		return *this;
+	T* begin() const { return (T *)this->begin_bytes(); }
+	T* end() const { return (T *)this->end_bytes(); }
+
+	usize size() const { return this->end() - this->begin(); }
+
+	void unsafe_cut_front(usize amount) {
+		this->unsafe_cut_front_bytes(amount * sizeof(T));
 	}
 
-	basic_vec& operator *= (T rhs)
-	{
-		x *= rhs; y *= rhs;
-		return *this;
+	T& unsafe_pop_front() {
+		T& r = *this->begin();
+		this->unsafe_cut_front_bytes(sizeof(T));
+		return r;
 	}
 
-	basic_vec& operator /= (T rhs)
-	{
-		x /= rhs; y /= rhs;
-		return *this;
+	T& unsafe_pop_back() {
+		this->unsafe_cut_back_bytes(sizeof(T));
+		return *this->end();
 	}
 
-	friend basic_vec operator - (basic_vec const& self)
-	{
-		return basic_vec(-self.x, -self.y);
+	template<typename U>
+	U unsafe_get_le() {
+		u8 const* p = this->begin();
+		U r = tl::read_le<U>(p);
+		this->unsafe_cut_front(sizeof(U));
+		return r;
 	}
-
-	basic_vec half() const
-	{
-		return basic_vec(x / T(2), y / T(2));
-	}
-
-	T x;
-	T y;
-
 };
 
-// Operations
+#if 1
 
-template<typename T>
-inline basic_vec<T, 2> operator - (basic_vec<T, 2> const& lhs, basic_vec<T, 2> const& rhs)
-{
-	basic_vec<T, 2> ret(lhs); ret -= rhs; return ret;
+#pragma region VecAbstract
+struct VecAbstract : protected VecSliceAbstract {
+
+	u8 *c;
+
+	VecAbstract() : c(0) {}
+
+	VecAbstract(VecAbstract&& other)
+		: VecSliceAbstract(move(other)), c(other.c) {
+		other.c = 0;
+	}
+
+	VecAbstract& operator=(VecAbstract&& other) {
+		VecSliceAbstract::operator=(move(other));
+		this->c = other.c;
+		other.c = 0;
+		return *this;
+	}
+
+	template<typename T>
+	VecSlice<T> slice() const {
+		VecSliceAbstract const& base = *this;
+		return static_cast<VecSlice<T> const&>(base);
+	}
+
+	u8* cap_end_bytes() { return this->c; }
+	
+	void reserve_bytes(usize amount);
+	void enlarge(usize extra);
+
+	~VecAbstract() { free(this->begin_bytes()); }
+};
+
+#pragma endregion
+#else
+
+#pragma region VecAbstract
+struct VecAbstract {
+
+	u8 *b;
+	u8 *c;
+	usize unused;
+
+	VecAbstract() : b(0), c(0), unused(0) {}
+
+	VecAbstract(VecAbstract&& other)
+		: b(other.b), c(other.c), unused(other.unused) {
+		other.b = 0;
+		other.c = 0;
+		other.unused = 0;
+	}
+
+	VecAbstract& operator=(VecAbstract&& other) {
+		this->b = other.b;
+		this->c = other.c;
+		this->unused = other.unused;
+		other.b = 0;
+		other.c = 0;
+		other.unused = 0;
+		return *this;
+	}
+
+	template<typename T>
+	VecSlice<T> slice() const {
+		return VecSlice<T>((T *)this->b, (T *)(this->c - this->unused));
+	}
+
+	usize size_bytes() const { return this->c - this->b - this->unused; }
+
+	u8* begin_bytes() const { return this->b; }
+	u8* end_bytes() const { return this->c - this->unused; }
+	u8* cap_end_bytes() const { return this->c; }
+	bool empty() const { return size_bytes() == 0; }
+
+	void unsafe_set_size_bytes(usize new_size) {
+		this->unused = this->c - this->b - new_size;
+	}
+
+	u8* unsafe_inc_size_bytes(usize amount) {
+		u8* old_e = this->c - this->unused;
+		this->unused += amount;
+		return old_e;
+	}
+
+	void unsafe_cut_front_bytes(usize amount) {
+		this->b += amount;
+	}
+
+	void unsafe_cut_back_bytes(usize amount) {
+		this->unused += amount;
+	}
+
+	void reserve_bytes(usize amount);
+	void enlarge(usize extra);
+
+	~VecAbstract() { free(this->begin_bytes()); }
+};
+
+#pragma endregion
+#endif
+
+#pragma region VecInlineAbstract
+template<usize InlineSize = 128>
+struct VecInlineAbstract : protected VecSliceAbstract {
+	u8 *c;
+	u8 inline_buffer[InlineSize];
+
+	VecInlineAbstract()
+		: VecSliceAbstract(inline_buffer, inline_buffer)
+		, c(inline_buffer + InlineSize) {
+	}
+
+	// Not so simple to move inline vecs
+	VecInlineAbstract(VecAbstract&& other) = delete;
+	VecInlineAbstract& operator=(VecAbstract&& other) = delete;
+
+	template<typename T>
+	VecSlice<T> slice() const {
+		VecSliceAbstract const& base = *this;
+		return static_cast<VecSlice<T> const&>(base);
+	}
+
+	u8* cap_end_bytes() { return this->c; }
+
+	void enlarge(usize extra);
+	void reserve_bytes(usize new_cap);
+
+	~VecInlineAbstract() {
+		u8* beg = this->begin_bytes();
+		if (beg != inline_buffer)
+			free(beg);
+	}
+};
+
+template<usize InlineSize>
+void VecInlineAbstract<InlineSize>::enlarge(usize extra) {
+	usize size = this->size_bytes();
+	usize new_cap = 2 * size + extra;
+
+	this->reserve_bytes(new_cap);
 }
 
-template<typename T>
-inline basic_vec<T, 2> operator + (basic_vec<T, 2> const& lhs, basic_vec<T, 2> const& rhs)
-{
-	basic_vec<T, 2> ret(lhs); ret += rhs; return ret;
+template<usize InlineSize>
+void VecInlineAbstract<InlineSize>::reserve_bytes(usize new_cap) {
+
+	u8* old_b = this->begin_bytes();
+	u8* cur_b = old_b;
+
+	if (new_cap <= usize(c - old_b))
+		return;
+
+	u8* new_b;
+
+	if (old_b == inline_buffer) {
+		old_b = 0; // Do not deallocate
+	}
+
+	usize size = this->size_bytes();
+	
+	if ((new_b = (u8 *)realloc(old_b, new_cap)) == 0) {
+		free(cur_b);
+		new_b = 0;
+	} else if (!old_b) {
+		// Moving to malloc storage
+		memcpy(new_b, cur_b, size);
+	}
+
+	this->VecSliceAbstract::operator=(VecSliceAbstract(new_b, new_b + size));
+	c = new_b + new_cap;
+}
+#pragma endregion
+
+#pragma region Vec
+template<typename T, typename Base = VecAbstract>
+struct Vec : Base {
+
+	using Base::size_bytes;
+	using Base::empty;
+
+	Vec(Vec const&) = delete;
+	Vec& operator=(Vec const& other) = delete;
+
+	Vec() = default;
+	Vec(Vec&& other) = default;
+
+	Vec(VecSlice<T const> other)
+		: Vec(other.begin(), other.size()) {
+	}
+
+	Vec(T const* src, usize len) {
+		usize len_in_bytes = len * sizeof(T);
+		this->reserve_bytes(len_in_bytes);
+		memcpy(this->begin(), src, len_in_bytes);
+		this->unsafe_inc_size_bytes(len_in_bytes);
+	}
+
+	Vec(usize capacity) {
+		usize capacity_in_bytes = capacity * sizeof(T);
+		this->reserve_bytes(capacity_in_bytes);
+	}
+
+	void push_back(T const& v) {
+		if (this->cap_end_bytes() - this->end_bytes() < sizeof(v)) {
+			this->enlarge(sizeof(v));
+		}
+		new (this->unsafe_inc_size_bytes(sizeof(v))) T(v);
+	}
+
+	void push_back(T&& v) {
+		if (this->cap_end_bytes() - this->end_bytes() < sizeof(v)) {
+			this->enlarge(sizeof(v));
+		}
+		new (this->unsafe_inc_size_bytes(sizeof(v))) T(move(v));
+	}
+
+	T* unsafe_alloc(usize count) {
+		if (usize(this->cap_end_bytes() - this->end_bytes()) < count * sizeof(T))
+			this->enlarge(count * sizeof(T));
+
+		T* p = this->end();
+		this->unsafe_inc_size_bytes(count * sizeof(T));
+		return p;
+	}
+
+	VecSlice<T> slice() {
+		return this->Base::template slice<T>();
+	}
+
+	VecSlice<T const> slice_const() const {
+		return this->Base::template slice<T const>();
+	}
+
+	T& operator[](usize index) { return this->slice()[index]; }
+	T const& operator[](usize index) const { return this->slice_const()[index]; }
+
+	T* begin() { return this->slice().begin(); }
+	T* end() { return this->slice().end(); }
+	T const* begin() const { return this->slice_const().begin(); }
+	T const* end() const { return this->slice_const().end(); }
+	T* cap_end() { return (T *)this->cap_end_bytes(); }
+	usize size() const { return this->slice_const().size(); }
+
+	void reserve(usize new_cap) {
+		this->reserve_bytes(new_cap * sizeof(T));
+	}
+
+	void clear() {
+		destroy_all();
+		this->unsafe_set_size_bytes(0);
+	}
+
+	void unsafe_set_size(usize new_size) {
+		assert(usize(this->cap_end() - this->begin()) <= new_size);
+		this->unsafe_set_size_bytes(new_size * sizeof(T));
+	}
+
+	~Vec() {
+		destroy_all();
+	}
+
+private:
+
+	void destroy_all() {
+		for (T& p : slice()) {
+			p.~T();
+		}
+	}
+};
+#pragma endregion
+
+template<typename T, usize InlineSize = 128>
+using VecSmall = Vec<T, VecInlineAbstract<InlineSize>>;
+
+struct BufferMixed : Vec<u8> {
+
+	BufferMixed() = default;
+	BufferMixed(BufferMixed&&) = default;
+
+	template<typename U>
+	void unsafe_push(U const& v) {
+		u8* p = unsafe_alloc(sizeof(U));
+		new (p) U(v);
+	}
+};
+
 }
 
-template<typename T>
-inline basic_vec<T, 2> operator * (basic_vec<T, 2> const& lhs, basic_vec<T, 2> const& rhs)
-{
-	basic_vec<T, 2> ret(lhs); ret *= rhs; return ret;
-}
-
-template<typename T>
-inline basic_vec<T, 2> operator * (basic_vec<T, 2> const& lhs, T rhs)
-{
-	basic_vec<T, 2> ret(lhs); ret *= rhs; return ret;
-}
-
-template<typename T>
-inline basic_vec<T, 2> operator * (T lhs, basic_vec<T, 2> const& rhs)
-{
-	basic_vec<T, 2> ret(rhs); ret *= lhs; return ret;
-}
-
-template<typename T>
-inline basic_vec<T, 2> operator / (basic_vec<T, 2> const& lhs, T rhs)
-{
-	basic_vec<T, 2> ret(lhs); ret /= rhs; return ret;
-}
-
-template<typename T>
-inline bool operator==(basic_vec<T, 2> a, basic_vec<T, 2> b)
-{
-	return a.x == b.x && a.y == b.y;
-}
-
-template<typename T>
-inline bool operator!=(basic_vec<T, 2> a, basic_vec<T, 2> b)
-{
-	return !(a == b);
-}
-
-template<typename T>
-inline basic_vec<T, 2> cross(T a, basic_vec<T, 2> b)
-{
-	basic_vec<T, 2> ret(-a * b.y, a * b.x);  return ret;
-}
-
-template<typename T>
-inline basic_vec<T, 2> cross(basic_vec<T, 2> a, T b)
-{
-	basic_vec<T, 2> ret(b * a.y, -b * a.x);  return ret;
-}
-
-template<typename T>
-inline T cross(basic_vec<T, 2> a, basic_vec<T, 2> b)
-{
-	return a.x * b.y - a.y * b.x;
-}
-
-template<typename T>
-inline T dot(basic_vec<T, 2> a, basic_vec<T, 2> b)
-{
-	return a.x * b.x + a.y * b.y;
-}
-
-template<typename T>
-inline basic_vec<T, 2> perp(basic_vec<T, 2> self)
-{
-	basic_vec<T, 2> ret(-self.y, self.x);  return ret;
-}
-
-// Rotate a using b
-template<typename T>
-inline basic_vec<T, 2> rotate(basic_vec<T, 2> a, basic_vec<T, 2> b)
-{
-	basic_vec<T, 2> ret(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
-	return ret;
-}
-
-// Unrotate a using b
-template<typename T>
-inline basic_vec<T, 2> unrotate(basic_vec<T, 2> a, basic_vec<T, 2> b)
-{
-	basic_vec<T, 2> ret(a.x * b.x + a.y * b.y, a.y * b.x - a.x * b.y);
-	return ret;
-}
-
-template<typename T>
-inline T length_sqr(basic_vec<T, 2> self)
-{
-	return self.x*self.x + self.y*self.y;
-}
-
-template<typename T>
-inline T length(basic_vec<T, 2> self)
-{
-	using std::sqrt; // To allow overloading
-	return sqrt(length_sqr(self));
-}
-
-template<typename T2, typename T>
-inline T2 length_convert(basic_vec<T, 2> self)
-{
-	using std::sqrt; // To allow overloading
-	return sqrt(T2(length_sqr(self)));
-}
-
-template<typename T>
-inline basic_vec<T, 2> normal(basic_vec<T, 2> self)
-{
-	T invLength = T(1) / length(self);
-	basic_vec<T, 2> ret(self.x*invLength, self.y*invLength);
-	return ret;
-}
-
-// Uses reciprocal to avoid one division, thus not as accurate as it
-// could be. Use normal_accurate to get a more accurate result.
-template<typename T2, typename T>
-inline basic_vec<T2, 2> normal_convert(basic_vec<T, 2> self)
-{
-	T2 invLength = T2(1) / length_convert<T2>(self);
-	basic_vec<T2, 2> ret(T2(self.x)*invLength, T2(self.y)*invLength);
-	return ret;
-}
-
-template<typename T>
-inline basic_vec<T, 2> normal_accurate(basic_vec<T, 2> self)
-{
-	T len = length(self);
-	basic_vec<T, 2> ret(self.x / len, self.y / len);
-	return ret;
-}
-
-// Common aliases
-typedef basic_vec<float, 2> fvec2;
-typedef basic_vec<int, 2> ivec2;
-
-} // namespace tl
-
-#endif // UUID_604BD56BB2F2436A4CC319ACA78603F3
+#endif // TL_VEC_HPP

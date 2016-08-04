@@ -6,7 +6,8 @@
 #include <mmsystem.h>
 
 void panic() {
-	ExitProcess(1);
+	//ExitProcess(1);
+	abort();
 }
 
 static int has_freq = 0;

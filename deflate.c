@@ -7,7 +7,7 @@ typedef struct tl_deflate_source {
 
 static void tl_def_init_(tl_deflate_source* self)
 {
-	
+	TL_UNUSED(self);
 }
 
 tl_deflate* tl_def_create()

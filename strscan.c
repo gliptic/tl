@@ -479,16 +479,16 @@ StrScanFmt tl_strscan_scan(const uint8_t *p, tl_value *o, uint32_t opt)
 	}
 }
 
-int tl_strscan_num(char const *str, size_t len, tl_value *o)
-{
+int tl_strscan_num(char const *str, size_t len, tl_value *o) {
 	StrScanFmt fmt = tl_strscan_scan((const uint8_t *)str, o, STRSCAN_OPT_TONUM);
+	TL_UNUSED(len);
 	lua_assert(fmt == STRSCAN_ERROR || fmt == STRSCAN_NUM);
 	return fmt;
 }
 
-int tl_strscan_number(char const *str, size_t len, tl_value *o)
-{
+int tl_strscan_number(char const *str, size_t len, tl_value *o) {
 	StrScanFmt fmt = tl_strscan_scan((const uint8_t *)str, o, STRSCAN_OPT_TOINT);
+	TL_UNUSED(len);
 	lua_assert(fmt == STRSCAN_ERROR || fmt == STRSCAN_NUM || fmt == STRSCAN_INT);
 	return fmt;
 }

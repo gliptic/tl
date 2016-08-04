@@ -20,6 +20,10 @@ unsigned __int64 _byteswap_uint64(unsigned __int64 val);
 # define tl_byteswap16(x) _byteswap_ushort(x)
 # define tl_byteswap32(x) _byteswap_ulong(x)
 
+#if TL_CPP
+extern "C" {
+#endif
+
 TL_INLINE int tl_ffs(uint32_t x) {
 	unsigned long r; _BitScanForward(&r, x); return r;
 }
@@ -64,7 +68,7 @@ TL_INLINE int tl_fls64(uint64_t x) {
 }
 #endif
 
-static int tl_reverse_bits16(int n) {
+TL_INLINE int tl_reverse_bits16(int n) {
 	n = ((n & 0xAAAA) >>  1) | ((n & 0x5555) << 1);
 	n = ((n & 0xCCCC) >>  2) | ((n & 0x3333) << 2);
 	n = ((n & 0xF0F0) >>  4) | ((n & 0x0F0F) << 4);
@@ -72,7 +76,7 @@ static int tl_reverse_bits16(int n) {
 	return n;
 }
 
-static unsigned int tl_reverse_bits32(unsigned int n) {
+TL_INLINE unsigned int tl_reverse_bits32(unsigned int n) {
 	n = ((n & 0xAAAAAAAA) >>  1) | ((n & 0x55555555) << 1);
 	n = ((n & 0xCCCCCCCC) >>  2) | ((n & 0x33333333) << 2);
 	n = ((n & 0xF0F0F0F0) >>  4) | ((n & 0x0F0F0F0F) << 4);
@@ -83,14 +87,18 @@ static unsigned int tl_reverse_bits32(unsigned int n) {
 #if TL_BIG_ENDIAN
 # define tl_le32(x) tl_byteswap32(x)
 # define tl_le16(x) tl_byteswap16(x)
+// TODO: tl_lesize
 # define tl_be32(x) (x)
 # define tl_be16(x) (x)
+# define tl_besize(x) (x)
 # define TL_ENDIAN_LOHI(lo, hi) hi lo
 #else
 # define tl_le32(x) (x)
 # define tl_le16(x) (x)
+# define tl_lesize(x) (x)
 # define tl_be32(x) tl_byteswap32(x)
 # define tl_be16(x) tl_byteswap16(x)
+// TODO: tl_besize
 # define TL_ENDIAN_LOHI(lo, hi) lo hi
 #endif
 
@@ -125,5 +133,23 @@ TL_INLINE double tl_ureptod(uint64_t u) {
 	_.u = u;
 	return _.f;
 }
+
+u32 tl_popcount(u32 a);
+
+#if TL_CPP
+
+} // extern "C"
+
+namespace tl {
+
+template<typename To, typename From>
+To narrow(From v) {
+	assert((From)(To)v == v);
+	return (To)v;
+}
+
+}
+
+#endif
 
 #endif // UUID_644FCF12367F4D475780169F9A4EAE7C

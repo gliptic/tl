@@ -224,6 +224,18 @@
     <ClCompile Include="..\windows\runtime_vcpp.cpp">
       <Filter>windows</Filter>
     </ClCompile>
+    <ClCompile Include="..\image.cpp" />
+    <ClCompile Include="..\windows\stream.cpp">
+      <Filter>windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\stream.cpp" />
+    <ClCompile Include="..\approxmath\sincos.cpp">
+      <Filter>approxmath</Filter>
+    </ClCompile>
+    <ClCompile Include="..\string_set.cpp" />
+    <ClCompile Include="..\vec.cpp" />
+    <ClCompile Include="..\string.cpp" />
+    <ClCompile Include="..\bits.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inflate.h" />
@@ -288,11 +300,25 @@
     <ClInclude Include="..\utf8.h" />
     <ClInclude Include="..\strscan.h" />
     <ClInclude Include="..\char.h" />
-    <ClInclude Include="..\vec.hpp" />
-    <ClInclude Include="..\vector.hpp" />
     <ClInclude Include="..\stream.h" />
     <ClInclude Include="..\stream.hpp" />
     <ClInclude Include="..\vector.h" />
+    <ClInclude Include="..\image.hpp" />
+    <ClInclude Include="..\windows\win.hpp">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rect.hpp" />
+    <ClInclude Include="..\string.hpp" />
+    <ClInclude Include="..\approxmath\am.hpp">
+      <Filter>approxmath</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rand.hpp" />
+    <ClInclude Include="..\string_set.hpp" />
+    <ClInclude Include="..\shared_ptr.hpp" />
+    <ClInclude Include="..\vector_old.hpp" />
+    <ClInclude Include="..\vec.hpp" />
+    <ClInclude Include="..\vector.hpp" />
+    <ClInclude Include="..\filesystem.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="fdlibm">
@@ -312,5 +338,10 @@
     <None Include="..\codec\polar_model.ppc">
       <Filter>codec</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="..\windows\allmul.asm">
+      <Filter>windows</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

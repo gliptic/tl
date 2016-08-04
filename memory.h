@@ -106,4 +106,43 @@ TL_INLINE uint16_t tl_read_be16(uint8_t const* p) { return p[1] + ((uint16_t)p[0
 
 #endif
 
+#if TL_CPP
+
+namespace tl {
+
+inline u8 read_le(u8 const& r) { return r; }
+inline u8 read_be(u8 const& r) { return r; }
+
+inline u16 read_le(u16 const& r) { u16 v; memcpy(&v, &r, sizeof(u16)); return tl_le16(v); }
+inline u16 read_be(u16 const& r) { u16 v; memcpy(&v, &r, sizeof(u16)); return tl_be16(v); }
+
+inline u32 read_le(u32 const& r) { u32 v; memcpy(&v, &r, sizeof(u32)); return tl_le32(v); }
+inline u32 read_be(u32 const& r) { u32 v; memcpy(&v, &r, sizeof(u32)); return tl_be32(v); }
+
+template<typename T>
+inline T swap_for_le(T v);
+
+template<> inline u32 swap_for_le<u32>(u32 v) { return tl_le32(v); }
+template<> inline u16 swap_for_le<u16>(u16 v) { return tl_le16(v); }
+#if TL_PTRSIZE != 32
+template<> inline usize swap_for_le<usize>(usize v) { return tl_lesize(v); }
+#endif
+
+template<typename T>
+inline void write_le(void* dest, T v) {
+	v = swap_for_le(v);
+	memcpy(dest, &v, sizeof(v));
+}
+
+template<typename T>
+inline T read_le(void const* src) {
+	T v;
+	memcpy(&v, src, sizeof(v));
+	return swap_for_le(v);
+}
+
+}
+
+#endif
+
 #endif // UUID_E4C54B1B70704E6FE73DE99BC631C8A4

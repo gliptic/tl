@@ -64,7 +64,7 @@ int tl_limit_max_code_size(u8* code_sizes, unsigned num_syms, unsigned max_code_
 	unsigned i;
 	u8 new_codesizes[TL_MAX_SUPPORTED_SYMS];
 	unsigned num_codes[TL_MAX_EVER_CODE_SIZE + 1];
-	unsigned ofs = 0, total = 0;
+	unsigned total = 0;
 	unsigned next_sorted_ofs[TL_MAX_EVER_CODE_SIZE + 1];
 	int should_limit = 0;
 	u8* p = new_codesizes;
@@ -87,16 +87,20 @@ int tl_limit_max_code_size(u8* code_sizes, unsigned num_syms, unsigned max_code_
 	if(!should_limit)
 		return 1;
 
-	for(i = 1; i <= TL_MAX_EVER_CODE_SIZE; ++i) {
-		next_sorted_ofs[i] = ofs;
-		ofs += num_codes[i];
+	{
+		unsigned ofs = 0;
+
+		for (i = 1; i <= TL_MAX_EVER_CODE_SIZE; ++i) {
+			next_sorted_ofs[i] = ofs;
+			ofs += num_codes[i];
+		}
+	
+		if ((ofs < 2) || (ofs > TL_MAX_SUPPORTED_SYMS))
+			return 1;
+
+		if (ofs > (1U << max_code_size))
+			return 0;
 	}
-
-	if ((ofs < 2) || (ofs > TL_MAX_SUPPORTED_SYMS))
-		return 1;
-
-	if (ofs > (1U << max_code_size))
-		return 0;
 
 	for(i = max_code_size + 1; i <= TL_MAX_EVER_CODE_SIZE; i++)
 		num_codes[max_code_size] += num_codes[i];

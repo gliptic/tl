@@ -15,8 +15,8 @@ void tl_polar_model_rebuild(tl_model* self)
 	int offset = (1 << shift) - 1;
 
 	for(i = 0; i < self->n; ++i) {
-		symbols[i].sym = i;
-		symbols[i].freq = (self->symbols[i].freq + offset) >> shift;
+		symbols[i].sym = (u16)i;
+		symbols[i].freq = (u16)((self->symbols[i].freq + offset) >> shift);
 	}
 	
 	tl_sort_symbols(symbols, self->n);

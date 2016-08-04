@@ -14,7 +14,10 @@ extern "C" {
 #endif
 
 #define memalloc malloc
-#define memrealloc(p, news, olds) realloc(p, news)
+TL_INLINE void* memrealloc(void* p, usize news, usize olds) {
+	TL_UNUSED(olds);
+	return realloc(p, news);
+}
 #define memfree free
 
 //TL_API void* memalloc(size_t s);
@@ -42,6 +45,14 @@ void assert_fail(char const* expr, char const* file, int line);
 
 #if TL_CPP
 }
+
+#define TL_DEFAULT_CTORS(name) \
+	name() = default; \
+	name(name&&) = default; \
+	name(name const&) = delete; \
+	name& operator=(name const&) = delete; \
+	name& operator=(name&&) = default;
+
 #endif
 
 #endif // TL_STD_H

@@ -17,7 +17,7 @@
 
 typedef struct tl_region_block {
 	struct tl_region_block* prev;
-	uint8_t mem[0];
+	uint8_t mem[];
 } tl_region_block;
 
 typedef struct tl_allocator {

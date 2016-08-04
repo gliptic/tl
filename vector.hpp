@@ -1,339 +1,247 @@
-#ifndef UUID_C8B889F6B0254CE3F7AE58B920794A20
-#define UUID_C8B889F6B0254CE3F7AE58B920794A20
+#ifndef UUID_604BD56BB2F2436A4CC319ACA78603F3
+#define UUID_604BD56BB2F2436A4CC319ACA78603F3
 
-#include "std.h"
-#include <stddef.h>
-#include <algorithm>
-#include <utility>
-
+#include <cmath>
 #include "cstdint.h"
-#include "platform.h"
-
-using std::move;
 
 namespace tl {
 
+// Only N == 2 supported at the moment
+
+template<typename T, int N>
+struct BasicVector
+{
+};
+
 template<typename T>
-struct vector_slice {
-	T *b, *e;
+struct BasicVector<T, 2>
+{
+	typedef T manip_t;
+	typedef T coord_type;
 
-	vector_slice()
-		: b(0), e(0) {
+	BasicVector()
+		: x(T()), y(T())
+	{ }
+
+	template<class T2>
+	explicit BasicVector(BasicVector<T2, 2> const& b)
+		: x(static_cast<T>(b.x)), y(static_cast<T>(b.y))
+	{ }
+
+	/// Vector from a to b.
+	///
+	BasicVector(BasicVector const& a, BasicVector const& b)
+		: x(b.x - a.x), y(b.y - a.y)
+	{ }
+
+	BasicVector(T const& x_, T const& y_)
+		: x(x_), y(y_)
+	{ }
+
+	template<class T2>
+	BasicVector(T2 const& x, T2 const& y)
+		: x(static_cast<T>(x)), y(static_cast<T>(y))
+	{ }
+
+	void zero()
+	{
+		x = T(); y = T();
 	}
 
-	vector_slice(T* b_init, T* e_init)
-		: b(b_init), e(e_init) {
-	}
-
-	T* begin() {
-		return this->b;
-	}
-
-	T* end() {
-		return this->e;
-	}
-
-	usize size() const {
-		return this->e - this->b;
-	}
-
-	usize size_in_bytes() const {
-		return (u8 const *)this->e - (u8 const *)this->b;
-	}
-
-	bool empty() const {
-		return this->b == this->e;
-	}
-
-	vector_slice<T> unsafe_cut_front_in_bytes(usize bytes) {
-		return vector_slice((T *)((u8 *)this->b + bytes), this->e);
-	}
-
-	vector_slice<T> unsafe_limit_size_in_bytes(usize bytes) {
-		return vector_slice(this->b, (T *)((u8 *)this->b + bytes));
-	}
-
-	template<typename U>
-	U* unsafe_read() {
-		TL_STATIC_ASSERT((sizeof(U) / sizeof(T)) * sizeof(T) == sizeof(U));
-
-		if (size_in_bytes() >= sizeof(U)) {
-			U *cur = (U *)this->b;
-			this->b = (T *)((u8 *)this->b + sizeof(U));
-			return cur;
-		} else {
-			return 0;
-		}
-	}
-};
-
-struct memalloc_allocator {
-	template<typename T>
-	void alloc_empty(T& slice) {
-	}
-
-	template<typename T>
-	void* alloc_slice(T& slice, usize cap_in_bytes) {
-		return memalloc(cap_in_bytes);
-	}
-
-	template<typename T>
-	void* realloc_slice(T& slice, usize new_cap_in_bytes, usize old_cap_in_bytes) {
-		void* new_b;
-
-		usize size_bytes = slice.size_in_bytes();
-
-		if (new_cap_in_bytes < size_bytes
-		 || !(new_b = memrealloc(slice.b, new_cap_in_bytes, old_cap_in_bytes))) {
-			memfree(slice.b);
-			new_b = 0;
-		}
-
-		return new_b;
-	}
-
-	template<typename T>
-	void free_slice(T& slice) {
-		memfree(slice.b);
-	}
-};
-
-/*
-template<typename T, usize InlineSize>
-struct small_vector;
-*/
-
-template<typename T, typename Allocator = memalloc_allocator> // , usize InlineSize = (64 + sizeof(T) - 1) / sizeof(T)
-struct vector : protected vector_slice<T>, private Allocator {
-
-	T *c;
-
-	using vector_slice::begin;
-	using vector_slice::end;
-	using vector_slice::size;
-	using vector_slice::empty;
-	using vector_slice::size_in_bytes;
-
-	vector()
-		: c(0) {
-
-		this->Allocator::alloc_empty(static_cast<vector_slice<T>&>(*this));
-	}
-
-	// TODO: How to limit this to T with trivial copy?
-	vector(T const* src, usize len) {
-		usize len_in_bytes = len * sizeof(T);
-		this->b = (T *)this->Allocator::alloc_slice(static_cast<vector_slice<T>&>(*this), len_in_bytes);
-		memcpy(this->b, src, len_in_bytes);
-		this->c = this->e = (T *)((u8 *)this->b + len_in_bytes);
-	}
-
-	vector(vector&& other)
-		: vector_slice(other.b, other.e), c(other.c) {
-
-		other.b = other.e = other.c = 0;
-	}
-
-	vector_slice slice() {
+	BasicVector& operator += (BasicVector const& rhs)
+	{
+		x += rhs.x; y += rhs.y;
 		return *this;
 	}
 
-	vector& operator=(vector&& other) {
-
-		this->b = other.b;
-		this->e = other.e;
-		this->c = other.c;
-
-		other.b = other.e = other.c = 0;
+	BasicVector& operator -= (BasicVector const& rhs)
+	{
+		x -= rhs.x; y -= rhs.y;
 		return *this;
 	}
 
-	void push_back(T const& value) {
-		if(this->cap_left_in_bytes() < sizeof(T))
-			enlarge(sizeof(T));
-		new (this->e) T(value);
-		++this->e;
-	}
-
-	void push_back(T&& value) {
-		if(this->cap_left_in_bytes() < sizeof(T))
-			enlarge(sizeof(T));
-		new (this->e) T(move(value));
-		++this->e;
-	}
-
-	T* cap_end() {
-		return this->c;
-	}
-
-	usize cap_in_bytes() const {
-		return (u8 const *)this->c - (u8 const *)this->b;
-	}
-
-	usize cap_left_in_bytes() const {
-		return (u8 const *)this->c - (u8 const *)this->e;
-	}
-	
-	void reserve(usize new_cap) {
-		if(new_cap * sizeof(T) > cap_in_bytes()) {
-			reserve_bytes(new_cap * sizeof(T));
-		}
-	}
-
-	void reserve_in_bytes(usize new_cap_in_bytes) {
-		if(new_cap_in_bytes > cap_in_bytes()) {
-			reserve_bytes(new_cap_in_bytes);
-		}
-	}
-
-	void reserve_bytes(usize new_cap_in_bytes) {
-		usize size_bytes = size_in_bytes();
-
-		//printf("new cap: %d\n", new_cap_in_bytes);
-
-		T *new_b = (T *)this->Allocator::realloc_slice(static_cast<vector_slice<T>&>(*this), new_cap_in_bytes, cap_in_bytes());
-		
-		this->b = new_b;
-		this->e = (T *)((u8 *)new_b + size_bytes);
-		this->c = (T *)((u8 *)new_b + new_cap_in_bytes);
-	}
-
-	void enlarge(usize extra_in_bytes) {
-		reserve_in_bytes(size_in_bytes() * 2 + extra_in_bytes);
-	}
-
-	void unsafe_set_size(usize new_size) {
-		this->e = this->b + new_size;
-	}
-
-	void unsafe_set(T* b, T* e, T* c) {
-		this->b = b;
-		this->e = e;
-		this->c = c;
-	}
-
-	void clear() {
-		destroy_all();
-		this->e = this->b;
-	}
-
-	~vector() {
-		destroy_all();
-		this->Allocator::free_slice(static_cast<vector_slice<T>&>(*this));
-	}
-
-private:
-
-	void destroy_all() {
-		for (T* p = this->b; p != this->e; ++p) {
-			p->~T();
-		}
-	}
-};
-
-struct mixed_buffer : tl::vector<u8> {
-	mixed_buffer() {
-	}
-
-	mixed_buffer(mixed_buffer&& other)
-		: vector(move(other)) {
+	template<typename U>
+	BasicVector& operator *= (U rhs)
+	{
+		x *= rhs; y *= rhs;
+		return *this;
 	}
 
 	template<typename U>
-	void unsafe_push(U const& v) {
-		if(this->cap_left_in_bytes() < sizeof(U))
-			enlarge(sizeof(U));
-		new (this->e) U(v);
-		this->e += sizeof(U);
+	BasicVector& operator /= (U rhs)
+	{
+		x /= rhs; y /= rhs;
+		return *this;
 	}
 
-	u8* unsafe_alloc(usize count) {
-		if(this->cap_left_in_bytes() < count)
-			enlarge(count);
-
-		u8* p = end();
-		this->e += count;
-		return p;
+	friend BasicVector operator - (BasicVector const& self)
+	{
+		return BasicVector(-self.x, -self.y);
 	}
 
-	vector& operator=(mixed_buffer&& other) {
-		return vector::operator=(move(other));
+	BasicVector half() const
+	{
+		return BasicVector(x / T(2), y / T(2));
 	}
+
+	template<typename U>
+	BasicVector<U, 2> cast() const {
+		return BasicVector<U, 2>(U(x), U(y));
+	}
+
+	T x;
+	T y;
+
 };
 
-template<typename T, usize InlineSize>
-struct small_vector;
+// Operations
 
-template<typename ElemT, usize InlineSize>
-struct inline_allocator : protected memalloc_allocator {
-	static usize const inline_size_in_bytes = (InlineSize + sizeof(ElemT) - 1) / sizeof(ElemT) * sizeof(ElemT);
-
-	template<typename T>
-	void alloc_empty(T& slice) {
-		auto& inline_slice = static_cast<small_vector<ElemT, InlineSize>&>(slice);
-
-		inline_slice.unsafe_set(
-			(ElemT *)inline_slice.inline_data,
-			(ElemT *)inline_slice.inline_data,
-			(ElemT *)(inline_slice.inline_data + inline_size_in_bytes));
-	}
-
-	template<typename T>
-	void* alloc_slice(T& slice, usize cap_in_bytes) {
-		if (cap_in_bytes <= inline_size_in_bytes) {
-			auto& inline_slice = static_cast<small_vector<ElemT, InlineSize>&>(slice);
-			return inline_slice.inline_data;
-		}
-
-		return memalloc(cap_in_bytes);
-	}
-
-	template<typename T>
-	void* realloc_slice(T& slice, usize new_cap_in_bytes, usize old_cap_in_bytes) {
-		void* new_b;
-
-		usize size_bytes = slice.size_in_bytes();
-		void* old_b = slice.b;
-		auto& inline_slice = static_cast<small_vector<ElemT, InlineSize>&>(slice);
-
-		if (old_b == inline_slice.inline_data) {
-			old_b = NULL;
-		}
-
-		if (new_cap_in_bytes < size_bytes
-			|| !(new_b = memrealloc(old_b, new_cap_in_bytes, old_cap_in_bytes))) {
-			memfree(old_b);
-			new_b = 0;
-		} else if (!old_b) {
-			memcpy(new_b, slice.b, size_bytes);
-		}
-
-		return new_b;
-	}
-
-	template<typename T>
-	void free_slice(T& slice) {
-		auto& inline_slice = static_cast<small_vector<ElemT, InlineSize>&>(slice);
-
-		if ((u8 *)slice.b != inline_slice.inline_data) {
-			memfree(slice.b);
-		}
-	}
-};
-
-template<typename T, usize InlineSize = 128>
-struct small_vector : tl::vector<T, inline_allocator<T, InlineSize> > {
-
-	small_vector() {
-
-	}
-
-	union {
-		T inline_data_[(InlineSize + sizeof(T) - 1) / sizeof(T)];
-		u8 inline_data[];
-	};
-};
-
+template<typename T>
+inline BasicVector<T, 2> operator - (BasicVector<T, 2> const& lhs, BasicVector<T, 2> const& rhs)
+{
+	BasicVector<T, 2> ret(lhs); ret -= rhs; return ret;
 }
 
-#endif // UUID_C8B889F6B0254CE3F7AE58B920794A20
+template<typename T>
+inline BasicVector<T, 2> operator + (BasicVector<T, 2> const& lhs, BasicVector<T, 2> const& rhs)
+{
+	BasicVector<T, 2> ret(lhs); ret += rhs; return ret;
+}
+
+template<typename T>
+inline BasicVector<T, 2> operator * (BasicVector<T, 2> const& lhs, BasicVector<T, 2> const& rhs)
+{
+	BasicVector<T, 2> ret(lhs); ret *= rhs; return ret;
+}
+
+template<typename T, typename U>
+inline BasicVector<T, 2> operator * (BasicVector<T, 2> const& lhs, U rhs)
+{
+	BasicVector<T, 2> ret(lhs); ret *= rhs; return ret;
+}
+
+template<typename T, typename U>
+inline BasicVector<T, 2> operator * (U lhs, BasicVector<T, 2> const& rhs)
+{
+	BasicVector<T, 2> ret(rhs); ret *= lhs; return ret;
+}
+
+template<typename T, typename U>
+inline BasicVector<T, 2> operator / (BasicVector<T, 2> const& lhs, U rhs)
+{
+	BasicVector<T, 2> ret(lhs); ret /= rhs; return ret;
+}
+
+template<typename T>
+inline bool operator==(BasicVector<T, 2> a, BasicVector<T, 2> b)
+{
+	return a.x == b.x && a.y == b.y;
+}
+
+template<typename T>
+inline bool operator!=(BasicVector<T, 2> a, BasicVector<T, 2> b)
+{
+	return !(a == b);
+}
+
+template<typename T>
+inline BasicVector<T, 2> cross(T a, BasicVector<T, 2> b)
+{
+	BasicVector<T, 2> ret(-a * b.y, a * b.x);  return ret;
+}
+
+template<typename T>
+inline BasicVector<T, 2> cross(BasicVector<T, 2> a, T b)
+{
+	BasicVector<T, 2> ret(b * a.y, -b * a.x);  return ret;
+}
+
+template<typename T>
+inline T cross(BasicVector<T, 2> a, BasicVector<T, 2> b)
+{
+	return a.x * b.y - a.y * b.x;
+}
+
+template<typename T>
+inline T dot(BasicVector<T, 2> a, BasicVector<T, 2> b)
+{
+	return a.x * b.x + a.y * b.y;
+}
+
+template<typename T>
+inline BasicVector<T, 2> perp(BasicVector<T, 2> self)
+{
+	BasicVector<T, 2> ret(-self.y, self.x);  return ret;
+}
+
+// Rotate a using b
+template<typename T>
+inline BasicVector<T, 2> rotate(BasicVector<T, 2> a, BasicVector<T, 2> b)
+{
+	BasicVector<T, 2> ret(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+	return ret;
+}
+
+// Unrotate a using b
+template<typename T>
+inline BasicVector<T, 2> unrotate(BasicVector<T, 2> a, BasicVector<T, 2> b)
+{
+	BasicVector<T, 2> ret(a.x * b.x + a.y * b.y, a.y * b.x - a.x * b.y);
+	return ret;
+}
+
+template<typename T>
+inline T length_sqr(BasicVector<T, 2> self)
+{
+	return self.x*self.x + self.y*self.y;
+}
+
+template<typename T>
+inline T length(BasicVector<T, 2> self)
+{
+	using std::sqrt; // To allow overloading
+	return sqrt(length_sqr(self));
+}
+
+template<typename T2, typename T>
+inline T2 length_convert(BasicVector<T, 2> self)
+{
+	using std::sqrt; // To allow overloading
+	return sqrt(T2(length_sqr(self)));
+}
+
+template<typename T>
+inline BasicVector<T, 2> normal(BasicVector<T, 2> self)
+{
+	T invLength = T(1) / length(self);
+	BasicVector<T, 2> ret(self.x*invLength, self.y*invLength);
+	return ret;
+}
+
+// Uses reciprocal to avoid one division, thus not as accurate as it
+// could be. Use normal_accurate to get a more accurate result.
+template<typename T2, typename T>
+inline BasicVector<T2, 2> normal_convert(BasicVector<T, 2> self)
+{
+	T2 invLength = T2(1) / length_convert<T2>(self);
+	BasicVector<T2, 2> ret(T2(self.x)*invLength, T2(self.y)*invLength);
+	return ret;
+}
+
+template<typename T>
+inline BasicVector<T, 2> normal_accurate(BasicVector<T, 2> self)
+{
+	T len = length(self);
+	BasicVector<T, 2> ret(self.x / len, self.y / len);
+	return ret;
+}
+
+// Common aliases
+typedef BasicVector<float, 2> VectorF2;
+typedef BasicVector<f64, 2> VectorD2;
+typedef BasicVector<i32, 2> VectorI2;
+typedef BasicVector<u32, 2> VectorU2;
+
+} // namespace tl
+
+#endif // UUID_604BD56BB2F2436A4CC319ACA78603F3

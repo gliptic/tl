@@ -23,9 +23,19 @@ extern void main();
 #define PC_53	0x200
 #define PC_64	0x300
 
+#define _IMP___FMODE    (__p__fmode())
+#define _IMP___COMMODE  (__p__commode())
+extern int * _IMP___FMODE;      /* exported from the CRT DLL */
+extern int * _IMP___COMMODE;    /* these names are implementation-specific */
+#define _fmode (0)
+#define _commode (0)
+
 void __declspec(noinline) mainCRTStartup(void) {
 
-	// TODO: Adapt to different versions of VC. This works for VC++ 10-14 at least.
+	//*_IMP___FMODE = _fmode;
+	//*_IMP___COMMODE = _commode;
+
+	// TODO: Adapt to different versions of VC. This works for VC++ 10-15 at least.
 	_PVFV *pfbegin = (_PVFV *)__xi_a, *pfend = (_PVFV *)__xi_z;
 
 	for (; pfbegin < pfend; ++pfbegin) {

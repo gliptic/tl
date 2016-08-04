@@ -163,8 +163,8 @@ tl_packed_rect* tl_rectpack_try_fit(tl_rectpack* self, int w, int h, int allow_r
 	return known_fit(self, w, h);
 }
 
-void tl_rectpack_remove(tl_rectpack* self, tl_packed_rect* r)
-{
+void tl_rectpack_remove(tl_rectpack* self, tl_packed_rect* r) {
+	TL_UNUSED(self); TL_UNUSED(r);
 	assert(!"unimplemented");
 }
 

@@ -77,6 +77,7 @@
 # define TL_INLINE inline
 # if TL_MSVCPP
 #  define TL_FORCE_INLINE __forceinline
+#  define TL_NEVER_INLINE __declspec(noinline)
 # else
 #  define TL_FORCE_INLINE inline
 # endif
@@ -85,12 +86,17 @@
 #elif TL_MSVCPP
 # define TL_INLINE __inline
 # define TL_FORCE_INLINE __forceinline
+# define TL_NEVER_INLINE __declspec(noinline)
 #else
 # define TL_INLINE static
 #endif
 
+#ifndef TL_NEVER_INLINE
+# define TL_NEVER_INLINE
+#endif
+
 #ifndef TL_FORCE_INLINE
-#define TL_FORCE_INLINE TL_INLINE
+# define TL_FORCE_INLINE TL_INLINE
 #endif
 
 #if !defined(TL_CPP0X)
@@ -163,6 +169,14 @@
 # endif
 #endif
 
+#if !defined(TL_PTRSIZE)
+# if TL_PTR64
+#  define TL_PTRSIZE (64)
+# else
+#  define TL_PTRSIZE (32)
+# endif
+#endif
+
 #if TL_GCC
 # define TL_ALIGN(n) __attribute__((aligned(n)))
 #elif TL_MSVCPP
@@ -191,6 +205,12 @@
 #define TL_U64x(hi, lo) (((uint64_t)0x##hi << 32) + (uint64_t)0x##lo)
 
 #define TL_UNUSED(p) ((void)(p))
+
+#ifdef TL_MSVCPP
+# define TL_PACKED_STRUCT(name) __pragma(pack(push, 1)) struct name __pragma(pack(pop))
+#else
+# define TL_PACKED_STRUCT(name) struct __attribute__((packed)) name
+#endif
 
 // MSVCPP fix-ups
 #if TL_MSVCPP

@@ -536,12 +536,14 @@ void tl_tt_GetGlyphHMetrics(const tl_tt_fontinfo *info, int glyph_index, int *ad
 
 int tl_tt_GetGlyphKernAdvance(const tl_tt_fontinfo *info, int glyph1, int glyph2)
 {
-   return 0;
+	TL_UNUSED(info); TL_UNUSED(glyph1); TL_UNUSED(glyph2);
+	return 0;
 }
 
 int tl_tt_GetCodepointKernAdvance(const tl_tt_fontinfo *info, int ch1, int ch2)
 {
-   return 0;
+	TL_UNUSED(info); TL_UNUSED(ch1); TL_UNUSED(ch2);
+	return 0;
 }
 
 void tl_tt_GetCodepointHMetrics(const tl_tt_fontinfo *info, int codepoint, int *advanceWidth, int *leftSideBearing)
@@ -564,7 +566,8 @@ float tl_tt_ScaleForPixelHeight(const tl_tt_fontinfo *info, float height)
 
 void tl_tt_FreeShape(const tl_tt_fontinfo *info, tl_tt_vertex *v)
 {
-   STBTT_free(v, info->userdata);
+	TL_UNUSED(info);
+	STBTT_free(v, info->userdata);
 }
 
 //////////////////////////////////////////////////////////////////////////////

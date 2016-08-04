@@ -14,7 +14,7 @@ static int tl_reverse_bits(int v, int bits)
 
 static int zbuild_huffman(zhuffman *z, u8 *sizelist, int num)
 {
-	int i,k=0;
+	int i;
 	int code, next_code[16], sizes[17];
 
 	// DEFLATE spec for generating codes
@@ -26,16 +26,19 @@ static int zbuild_huffman(zhuffman *z, u8 *sizelist, int num)
 	for (i=1; i < 16; ++i)
 		assert(sizes[i] <= (1 << i));
 	code = 0;
-	for (i=1; i < 16; ++i) {
-		next_code[i] = code;
-		z->firstcode[i] = (u16) code;
-		z->firstsymbol[i] = (u16) k;
-		code = (code + sizes[i]);
-		if (sizes[i])
-			if (code-1 >= (1 << i)) return ZERR_BAD_CODELENGTHS;
-		z->maxcode[i] = code << (16-i); // preshift for inner loop
-		code <<= 1;
-		k += sizes[i];
+	{
+		int k = 0;
+		for (i=1; i < 16; ++i) {
+			next_code[i] = code;
+			z->firstcode[i] = (u16) code;
+			z->firstsymbol[i] = (u16) k;
+			code = (code + sizes[i]);
+			if (sizes[i])
+				if (code-1 >= (1 << i)) return ZERR_BAD_CODELENGTHS;
+			z->maxcode[i] = code << (16-i); // preshift for inner loop
+			code <<= 1;
+			k += sizes[i];
+		}
 	}
 	z->maxcode[16] = 0x10000; // sentinel
 	for (i=0; i < num; ++i) {
