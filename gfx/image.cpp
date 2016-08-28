@@ -1,12 +1,12 @@
-#include "Image.hpp"
+#include "image.hpp"
 
 #include <utility>
 #include <algorithm>
 
 namespace tl {
 
-Image::~Image() {
-	memfree(this->pixels);
+void ImageSlice::free() {
+	::free(this->pixels);
 }
 
 void Image::blit_unsafe(Image const& from, u32 x, u32 y) {
@@ -176,7 +176,7 @@ void BaseBlitContext::clip(i32& x, i32& y, VectorU2& src, VectorU2 todim) {
 		}
 	}
 	
-	if (y + dim.y > todim.y) {
+	if (y + (i32)dim.y > (i32)todim.y) {
 		if (y >= (i32)todim.y) {
 			dim.y = 0;
 		} else {
@@ -194,7 +194,7 @@ void BaseBlitContext::clip(i32& x, i32& y, VectorU2& src, VectorU2 todim) {
 		}
 	}
 
-	if (x + dim.x > todim.x) {
+	if (x + (i32)dim.x > (i32)todim.x) {
 		if (x >= (i32)todim.x) {
 			dim.x = 0;
 		} else {
@@ -228,5 +228,34 @@ Image ImageSlice::convert(u32 bpp_new, tl::Palette* pal) {
 	ret.blit(*this, pal);
 	return std::move(ret);
 }
+
+void BaseBlitContext::init_blit_context(
+	tl::Cursor* sources, ImageSlice* to, usize target_count,
+	tl::Cursor* targets, ImageSlice* from, usize source_count, i32 x, i32 y) {
+
+	this->dim = from[0].dim;
+	VectorU2 todim = to[0].dim;
+
+	// TODO: Verify that other sources have the same w/h
+	// TODO: Verify that other targets have the same w/h
+
+	VectorU2 src; //u32 src_x = 0, src_y = 0;
+	clip(x, y, src, todim);
+
+	for (u32 i = 0; i < source_count; ++i) {
+		u32 fbpp = from[i].bpp;
+		sources[i].pixels = from[i].ptr(src.x, src.y, fbpp);
+		sources[i].pitch = from[i].pitch;
+		sources[i].bpp = fbpp;
+	}
+
+	for (u32 i = 0; i < target_count; ++i) {
+		u32 tbpp = to[i].bpp;
+		targets[i].pixels = to[i].ptr((u32)x, (u32)y, tbpp);
+		targets[i].pitch = to[i].pitch;
+		targets[i].bpp = tbpp;
+	}
+}
+
 
 } // namespace tl

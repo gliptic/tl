@@ -9,28 +9,28 @@
 
 #if defined(__APPLE__)
 #   include <libkern/OSAtomic.h>
-    /* Here are the memory barrier functions. Mac OS X only provides
-       full memory barriers, so the three types of barriers are the same,
-       however, these barriers are superior to compiler-based ones. */
+	/* Here are the memory barrier functions. Mac OS X only provides
+	   full memory barriers, so the three types of barriers are the same,
+	   however, these barriers are superior to compiler-based ones. */
 #   define TL_FULL_SYNC()  OSMemoryBarrier()
 #   define TL_READ_SYNC()  OSMemoryBarrier()
 #   define TL_WRITE_SYNC() OSMemoryBarrier()
 #elif defined(__GNUC__)
-    /* GCC >= 4.1 has built-in intrinsics. We'll use those */
+	/* GCC >= 4.1 has built-in intrinsics. We'll use those */
 #   if (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)
 #      define TL_FULL_SYNC()  __sync_synchronize()
 #      define TL_READ_SYNC()  __sync_synchronize()
 #      define TL_WRITE_SYNC() __sync_synchronize()
-    /* as a fallback, GCC understands volatile asm and "memory" to mean it
-     * should not reorder memory read/writes */
-    /* Note that it is not clear that any compiler actually defines __PPC__,
-     * it can probably be safely removed. */
+	/* as a fallback, GCC understands volatile asm and "memory" to mean it
+	 * should not reorder memory read/writes */
+	/* Note that it is not clear that any compiler actually defines __PPC__,
+	 * it can probably be safely removed. */
 #   elif defined( __ppc__ ) || defined( __powerpc__) || defined( __PPC__ )
 #      define TL_FULL_SYNC()  asm volatile("sync":::"memory")
 #      define TL_READ_SYNC()  asm volatile("sync":::"memory")
 #      define TL_WRITE_SYNC() asm volatile("sync":::"memory")
 #   elif defined( __i386__ ) || defined( __i486__ ) || defined( __i586__ ) || \
-         defined( __i686__ ) || defined( __x86_64__ )
+		 defined( __i686__ ) || defined( __x86_64__ )
 #      define TL_FULL_SYNC()  asm volatile("mfence":::"memory")
 #      define TL_READ_SYNC()  asm volatile("lfence":::"memory")
 #      define TL_WRITE_SYNC() asm volatile("sfence":::"memory")
@@ -123,9 +123,15 @@ template<typename T>
 inline T swap_for_le(T v);
 
 template<> inline u32 swap_for_le<u32>(u32 v) { return tl_le32(v); }
+template<> inline i32 swap_for_le<i32>(i32 v) { return tl_le32(v); }
 template<> inline u16 swap_for_le<u16>(u16 v) { return tl_le16(v); }
-#if TL_PTRSIZE != 32
+template<> inline i16 swap_for_le<i16>(i16 v) { return tl_le16(v); }
+#if TL_PTRSIZE == 64
 template<> inline usize swap_for_le<usize>(usize v) { return tl_lesize(v); }
+template<> inline isize swap_for_le<isize>(isize v) { return tl_lesize(v); }
+#else
+template<> inline u64 swap_for_le<u64>(u64 v) { return tl_le64(v); }
+template<> inline i64 swap_for_le<i64>(i64 v) { return tl_le64(v); }
 #endif
 
 template<typename T>

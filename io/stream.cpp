@@ -2,7 +2,7 @@
 
 namespace tl {
 
-usize pullable::move_data_left(source& src, u8* new_buffer) {
+usize Pullable::move_data_left(Source& src, u8* new_buffer) {
 	usize data_left = src.size();
 	if (data_left != 0 && src.begin() != new_buffer) {
 		// Data left. Must move it to beginning.

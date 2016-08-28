@@ -3,7 +3,7 @@
 
 #include "../config.h"
 #include "../cstdint.h"
-#include "../stream.h"
+#include "../io/stream.h"
 #include "../platform.h"
 //#include <assert.h>
 #include "../std.h"

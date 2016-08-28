@@ -1,11 +1,11 @@
 #ifndef UUID_917ECCD8563741D5491DF687EA1F876D
 #define UUID_917ECCD8563741D5491DF687EA1F876D
 
-#include "config.h"
-#include "cstdint.h"
-#include "std.h"
-#include "rect.hpp"
-#include "vec.hpp"
+#include "../config.h"
+#include "../cstdint.h"
+#include "../std.h"
+#include "../rect.hpp"
+#include "../vec.hpp"
 
 namespace tl {
 
@@ -25,6 +25,13 @@ struct Color {
 	u8 g() const { return (v >> 8) & 0xff; }
 	u8 b() const { return (v >> 16) & 0xff; }
 	u8 a() const { return (v >> 24) & 0xff; }
+
+	Color blend_half(Color other) {
+		return Color(
+			((this->v & 0xfefefe) >> 1)
+		   + ((other.v & 0xfefefe) >> 1)
+		   + (this->v & other.v & 0x010101));
+	}
 
 	static Color read(u8 const* src) {
 		Color r;
@@ -88,7 +95,7 @@ struct ImageSlice {
 		u8* end;
 
 		u32 size() const {
-			return (end - cur) / sizeof(PixelT);
+			return u32((end - cur) / sizeof(PixelT));
 		}
 
 		bool next(u8*& p) {
@@ -162,6 +169,8 @@ struct ImageSlice {
 		, bpp(bpp) {
 	}
 
+	void free();
+
 	ImageSlice& operator=(ImageSlice const& other) = default;
 
 	ImageSlice crop(RectU rect) const {
@@ -177,6 +186,24 @@ struct ImageSlice {
 			rect.height(),
 			lpitch,
 			lbpp);
+	}
+
+	ImageSlice crop_bottom(u32 amount) const {
+		assert(this->dim.y >= amount);
+
+		return ImageSlice(
+			this->pixels,
+			this->dim.x,
+			this->dim.y - amount,
+			this->pitch,
+			this->bpp);
+	}
+
+	ImageSlice crop_square_sprite_v(u32 index) const {
+		assert(index < this->dim.y / this->dim.x);
+
+		u32 y = index * this->dim.x;
+		return this->crop(RectU(0, y, this->dim.x, y + this->dim.x));
 	}
 
 	Image convert(u32 bpp, tl::Palette* pal = 0);
@@ -246,6 +273,10 @@ struct ImageSlice {
 	u8 const* ptr(u32 x, u32 y, u32 lbpp) const {
 		return this->pixels + y*this->pitch + x*lbpp;
 	}
+
+	ImageSlice const& slice() const {
+		return *this;
+	}
 };
 
 struct Image : protected ImageSlice {
@@ -262,7 +293,10 @@ struct Image : protected ImageSlice {
 	using ImageSlice::is_inside;
 	using ImageSlice::is_empty;
 	using ImageSlice::crop;
+	using ImageSlice::crop_square_sprite_v;
 	using ImageSlice::bytespp;
+	using ImageSlice::lines_range;
+	using ImageSlice::slice;
 
 	Image() {
 	}
@@ -273,17 +307,23 @@ struct Image : protected ImageSlice {
 	}
 
 	Image& operator=(Image&& other) {
-		memfree(this->pixels);
+		this->free();
 		ImageSlice::operator=(other);
 		other.pixels = 0;
 		return *this;
 	}
 
 	TL_IMAGE_API Image(u32 w, u32 h, u32 bpp);
-	TL_IMAGE_API ~Image();
 
-	ImageSlice const& slice() const {
-		return *this;
+	~Image() {
+		this->free();
+	}
+
+	// Warning: this will leak if the slice isn't manually freed
+	ImageSlice to_slice() {
+		ImageSlice sl(this->slice());
+		this->pixels = 0;
+		return sl;
 	}
 
 	Image(Image const& other) = delete;
@@ -317,6 +357,9 @@ struct BaseBlitContext {
 	VectorU2 dim;
 
 	void clip(i32& x, i32& y, VectorU2& src, VectorU2 todim);
+	void init_blit_context(
+		tl::Cursor* sources, ImageSlice* to, usize target_count,
+		tl::Cursor* targets, ImageSlice* from, usize source_count, i32 x, i32 y);
 };
 
 struct UnsafeNoClip {};
@@ -328,7 +371,9 @@ struct BasicBlitContext : BaseBlitContext, DestOffset<KeepOffset> {
 	Cursor sources[SourceCount];
 
 	BasicBlitContext(ImageSlice (&to)[TargetCount], ImageSlice (&from)[SourceCount], i32 x, i32 y);
+#if 0
 	BasicBlitContext(ImageSlice (&to)[TargetCount], ImageSlice (&from)[SourceCount], UnsafeNoClip);
+#endif
 
 	static BasicBlitContext one_source(ImageSlice to, ImageSlice from, i32 x, i32 y) {
 		ImageSlice t[1] = { to };
@@ -340,7 +385,7 @@ struct BasicBlitContext : BaseBlitContext, DestOffset<KeepOffset> {
 	int blit(Palette* pal, u32 flags);
 };
 
-#if 1 // TODO: When we find use
+#if 0 // TODO: When we find use
 template<u32 TargetCount, u32 SourceCount, bool KeepOffset>
 BasicBlitContext<TargetCount, SourceCount, KeepOffset>::BasicBlitContext(ImageSlice (&to)[TargetCount], ImageSlice (&from)[SourceCount], UnsafeNoClip) {
 	this->dim = from[0].dim;
@@ -366,30 +411,9 @@ BasicBlitContext<TargetCount, SourceCount, KeepOffset>::BasicBlitContext(ImageSl
 
 template<u32 TargetCount, u32 SourceCount, bool KeepOffset>
 BasicBlitContext<TargetCount, SourceCount, KeepOffset>::BasicBlitContext(ImageSlice (&to)[TargetCount], ImageSlice (&from)[SourceCount], i32 x, i32 y) {
-	this->dim = from[0].dim;
-	VectorU2 todim = to[0].dim;
-
-	// TODO: Verify that other sources have the same w/h
-	// TODO: Verify that other targets have the same w/h
-
-	VectorU2 src; //u32 src_x = 0, src_y = 0;
-	clip(x, y, src, todim);
-
+	
+	this->init_blit_context(sources, to, TargetCount, targets, from, SourceCount, x, y);
 	this->set_offset(tl::VectorU2((u32)x, (u32)y));
-
-	for (u32 i = 0; i < SourceCount; ++i) {
-		u32 fbpp = from[i].bpp;
-		sources[i].pixels = from[i].ptr(src.x, src.y, fbpp);
-		sources[i].pitch = from[i].pitch;
-		sources[i].bpp = fbpp;
-	}
-
-	for (u32 i = 0; i < TargetCount; ++i) {
-		u32 tbpp = to[i].bpp;
-		targets[i].pixels = to[i].ptr((u32)x, (u32)y, tbpp);
-		targets[i].pitch = to[i].pitch;
-		targets[i].bpp = tbpp;
-	}
 }
 
 typedef BasicBlitContext<1, 1> BlitContext;
@@ -397,6 +421,30 @@ typedef BasicBlitContext<1, 1> BlitContext;
 inline int ImageSlice::blit(ImageSlice const& from, Palette* pal, i32 x, i32 y, u32 flags) {
 	return BlitContext::one_source(*this, from, x, y).blit(pal, flags);
 }
+
+
+#if 0
+
+template<typename T>
+struct MallocContainer : T {
+	void* realloc(void* p, usize sz) {
+		return realloc(p, sz);
+	}
+
+	~MallocContainer() {
+		this->T::destroy();
+	}
+};
+
+template<template<typename T> Container>
+void alloc_uninit(Container<ImageSlice>& image, u32 w, u32 h, u32 bpp_init) {
+	image.pixels = (u8 *)image.realloc(image.pixels, w * h * bpp_init, image.dim.x * image.dim.y * image.bpp);
+	image.dim = VectorU2(w, h);
+	image.pitch = w * bpp_init;
+	image.bpp = bpp_init;
+}
+
+#endif
 
 }
 

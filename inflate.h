@@ -2,7 +2,7 @@
 #define UUID_771F42532AD94623B1E473A76A1A9FB0
 
 #include "config.h"
-#include "stream.h"
+#include "io/stream.h"
 
 typedef struct tl_inflate {
 	tl_byte_source in;

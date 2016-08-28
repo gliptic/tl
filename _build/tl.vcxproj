@@ -387,15 +387,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\gfx\image.cpp" />
+    <ClCompile Include="..\gfx\tga.cpp" />
     <ClCompile Include="..\ieee.c" />
-    <ClCompile Include="..\image.c">
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)\%(Directory)\imagec.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)\%(Directory)\imagec.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)\%(Directory)\imagec.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\%(Directory)\imagec.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="..\image.cpp" />
     <ClCompile Include="..\inflate.c" />
+    <ClCompile Include="..\io\stream.cpp" />
+    <ClCompile Include="..\pairing_heap.c" />
     <ClCompile Include="..\png.c" />
     <ClCompile Include="..\rectpack.c" />
     <ClCompile Include="..\region.c" />
@@ -408,20 +405,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\std.c" />
-    <ClCompile Include="..\stream.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)\%(Directory)\streamc.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)\%(Directory)\streamc.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)\%(Directory)\streamc.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\%(Directory)\streamc.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="..\stream.cpp" />
     <ClCompile Include="..\string.cpp" />
     <ClCompile Include="..\string_set.cpp" />
     <ClCompile Include="..\strscan.c" />
+    <ClCompile Include="..\treap.c" />
     <ClCompile Include="..\truetype.c" />
     <ClCompile Include="..\utf8.c" />
     <ClCompile Include="..\vec.cpp" />
@@ -431,6 +418,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\wav.cpp" />
     <ClCompile Include="..\windows\io.c" />
     <ClCompile Include="..\windows\runtime_vc.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -470,15 +458,17 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="..\filesystem.hpp" />
+    <ClInclude Include="..\gfx\image.hpp" />
+    <ClInclude Include="..\gfx\tga.hpp" />
     <ClInclude Include="..\ieee.h" />
-    <ClInclude Include="..\image.h" />
-    <ClInclude Include="..\image.hpp" />
     <ClInclude Include="..\impl.h" />
     <ClInclude Include="..\inflate.h" />
     <ClInclude Include="..\io.h" />
+    <ClInclude Include="..\io\filesystem.hpp" />
+    <ClInclude Include="..\io\stream.hpp" />
     <ClInclude Include="..\list.h" />
     <ClInclude Include="..\memory.h" />
+    <ClInclude Include="..\pairing_heap.h" />
     <ClInclude Include="..\platform.h" />
     <ClInclude Include="..\png.h" />
     <ClInclude Include="..\rand.h" />
@@ -487,6 +477,7 @@
     <ClInclude Include="..\rect.hpp" />
     <ClInclude Include="..\rectpack.h" />
     <ClInclude Include="..\region.h" />
+    <ClInclude Include="..\region.hpp" />
     <ClInclude Include="..\riff.h" />
     <ClInclude Include="..\shared_ptr.hpp" />
     <ClInclude Include="..\socket.h">
@@ -502,35 +493,35 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\std.h" />
-    <ClInclude Include="..\stream.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="..\inflate_impl.h" />
-    <ClInclude Include="..\stream.hpp" />
     <ClInclude Include="..\string.hpp" />
     <ClInclude Include="..\string_set.hpp" />
     <ClInclude Include="..\strscan.h" />
+    <ClInclude Include="..\treap.h" />
     <ClInclude Include="..\truetype.h" />
     <ClInclude Include="..\utf8.h" />
     <ClInclude Include="..\vector.hpp" />
     <ClInclude Include="..\vector.h" />
     <ClInclude Include="..\vec.hpp" />
-    <ClInclude Include="..\vector_old.hpp" />
     <ClInclude Include="..\vorbis.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="..\wav.hpp" />
     <ClInclude Include="..\windows\win.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\codec\polar_model.ppc" />
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="..\approxmath\sincos.asm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </MASM>
     <MASM Include="..\windows\allmul.asm">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -606,7 +597,6 @@
       <SDLCheck>
       </SDLCheck>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <DisableSpecificWarnings>4127;4577</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -628,7 +618,6 @@
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <DisableSpecificWarnings>4127;4577</DisableSpecificWarnings>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <SDLCheck>
       </SDLCheck>
@@ -651,7 +640,6 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <PreprocessorDefinitions>WIN32;TL_STATIC=1;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4127;4577</DisableSpecificWarnings>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
       <SDLCheck>
       </SDLCheck>
@@ -675,7 +663,6 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <PreprocessorDefinitions>WIN32;TL_STATIC=1;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4127;4577</DisableSpecificWarnings>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
       <SDLCheck>
       </SDLCheck>

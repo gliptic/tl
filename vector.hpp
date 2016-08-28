@@ -1,8 +1,9 @@
 #ifndef UUID_604BD56BB2F2436A4CC319ACA78603F3
 #define UUID_604BD56BB2F2436A4CC319ACA78603F3
 
-#include <cmath>
+#include "platform.h"
 #include "cstdint.h"
+#include <cmath>
 
 namespace tl {
 
@@ -16,9 +17,6 @@ struct BasicVector
 template<typename T>
 struct BasicVector<T, 2>
 {
-	typedef T manip_t;
-	typedef T coord_type;
-
 	BasicVector()
 		: x(T()), y(T())
 	{ }
@@ -191,28 +189,24 @@ inline BasicVector<T, 2> unrotate(BasicVector<T, 2> a, BasicVector<T, 2> b)
 }
 
 template<typename T>
-inline T length_sqr(BasicVector<T, 2> self)
-{
+inline T length_sqr(BasicVector<T, 2> self) {
 	return self.x*self.x + self.y*self.y;
 }
 
 template<typename T>
-inline T length(BasicVector<T, 2> self)
-{
+inline T length(BasicVector<T, 2> self) {
 	using std::sqrt; // To allow overloading
 	return sqrt(length_sqr(self));
 }
 
 template<typename T2, typename T>
-inline T2 length_convert(BasicVector<T, 2> self)
-{
+inline T2 length_convert(BasicVector<T, 2> self) {
 	using std::sqrt; // To allow overloading
 	return sqrt(T2(length_sqr(self)));
 }
 
 template<typename T>
-inline BasicVector<T, 2> normal(BasicVector<T, 2> self)
-{
+inline BasicVector<T, 2> normal(BasicVector<T, 2> self) {
 	T invLength = T(1) / length(self);
 	BasicVector<T, 2> ret(self.x*invLength, self.y*invLength);
 	return ret;
@@ -221,16 +215,14 @@ inline BasicVector<T, 2> normal(BasicVector<T, 2> self)
 // Uses reciprocal to avoid one division, thus not as accurate as it
 // could be. Use normal_accurate to get a more accurate result.
 template<typename T2, typename T>
-inline BasicVector<T2, 2> normal_convert(BasicVector<T, 2> self)
-{
+inline BasicVector<T2, 2> normal_convert(BasicVector<T, 2> self) {
 	T2 invLength = T2(1) / length_convert<T2>(self);
 	BasicVector<T2, 2> ret(T2(self.x)*invLength, T2(self.y)*invLength);
 	return ret;
 }
 
 template<typename T>
-inline BasicVector<T, 2> normal_accurate(BasicVector<T, 2> self)
-{
+inline BasicVector<T, 2> normal_accurate(BasicVector<T, 2> self) {
 	T len = length(self);
 	BasicVector<T, 2> ret(self.x / len, self.y / len);
 	return ret;

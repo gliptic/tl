@@ -79,7 +79,7 @@ struct vector_slice {
 
 struct memalloc_allocator {
 	template<typename T>
-	void alloc_empty(T& slice) {
+	void alloc_empty(T&) {
 	}
 
 	template<typename T>
@@ -161,14 +161,14 @@ struct vector : protected vector_slice<T>, private Allocator {
 	void push_back(T const& value) {
 		if(this->cap_left_in_bytes() < sizeof(T))
 			enlarge(sizeof(T));
-		new (this->e) T(value);
+		new (this->e, non_null()) T(value);
 		++this->e;
 	}
 
 	void push_back(T&& value) {
 		if(this->cap_left_in_bytes() < sizeof(T))
 			enlarge(sizeof(T));
-		new (this->e++) T(move(value));
+		new (this->e++, non_null()) T(move(value));
 	}
 
 	T* cap_end() {
@@ -259,7 +259,7 @@ struct mixed_buffer : tl::vector<u8> {
 	void unsafe_push(U const& v) {
 		if(this->cap_left_in_bytes() < sizeof(U))
 			enlarge(sizeof(U));
-		new (this->e) U(v);
+		new (this->e, non_null()) U(v);
 		this->e += sizeof(U);
 	}
 

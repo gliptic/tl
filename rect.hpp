@@ -1,7 +1,7 @@
 #ifndef TL_RECT_HPP
 #define TL_RECT_HPP
 
-#include "cstdint.h"
+#include "std.h"
 #include "vector.hpp"
 
 namespace tl {
@@ -132,10 +132,10 @@ public:
 	}
 	
 	void join(BasicRect const& b) {
-		x1 = std::min(b.x1, x1);
-		y1 = std::min(b.y1, y1);
-		x2 = std::max(b.x2, x2);
-		y2 = std::max(b.y2, y2);
+		x1 = tl::min(b.x1, x1);
+		y1 = tl::min(b.y1, y1);
+		x2 = tl::max(b.x2, x2);
+		y2 = tl::max(b.y2, y2);
 	}
 		
 	bool precise_join(BasicRect const& b) {
@@ -171,8 +171,8 @@ public:
 	}
 	
 	bool join_h(BasicRect const& b) {
-		T new_x1 = std::min(b.x1, x1);
-		T new_x2 = std::max(b.x2, x2);
+		T new_x1 = tl::min(b.x1, x1);
+		T new_x2 = tl::max(b.x2, x2);
 		
 		bool changed = new_x1 != x1 || new_x2 != x2;
 		x1 = new_x1;
@@ -182,8 +182,8 @@ public:
 	}
 	
 	bool join_v(BasicRect const& b) {
-		T new_y1 = std::min(b.y1, y1);
-		T new_y2 = std::max(b.y2, y2);
+		T new_y1 = tl::min(b.y1, y1);
+		T new_y2 = tl::max(b.y2, y2);
 		
 		bool changed = new_y1 != y1 || new_y2 != y2;
 		y1 = new_y1;
@@ -267,10 +267,10 @@ public:
 	}
 
 	bool intersect(BasicRect const& b) {
-		x1 = std::max(b.x1, x1);
-		y1 = std::max(b.y1, y1);
-		x2 = std::min(b.x2, x2);
-		y2 = std::min(b.y2, y2);
+		x1 = tl::max(b.x1, x1);
+		y1 = tl::max(b.y1, y1);
+		x2 = tl::min(b.x2, x2);
+		y2 = tl::min(b.y2, y2);
 		
 		return valid();
 	}

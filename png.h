@@ -2,8 +2,8 @@
 #define UUID_6327FB2089BF4EFC31D42D9AA180316B
 
 #include "config.h"
-#include "stream.h"
-#include "image.h"
+#include "io/stream.h"
+#include "gfx/image.h"
 
 typedef struct tl_png {
 	tl_byte_source_pullable in;

@@ -1,11 +1,11 @@
 #include "inflate.c"
 #include "png.c"
 #include "rectpack.c"
-#include "image.c"
 #include "socket.c"
 #include "truetype.c"
 #include "stream.c"
 #include "riff.c"
+#include "gfx/image.c"
 
 #include "approxmath/sincos.c"
 #include "approxmath/exp.c"

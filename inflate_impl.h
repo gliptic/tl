@@ -3,7 +3,7 @@
 //#include <assert.h>
 //#include <string.h>
 //#include <stdlib.h>
-#include "stream.h"
+#include "io/stream.h"
 #include "inflate.h"
 #include "coro.h"
 

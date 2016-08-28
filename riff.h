@@ -2,7 +2,7 @@
 #define UUID_888421EF4BF64B115A93C69A521234CB
 
 #include "config.h"
-#include "stream.h"
+#include "io/stream.h"
 
 #define RIFF_SIGN(a, b, c, d) ((a) + ((b)<<8) + ((c)<<16) + ((d)<<24))
 

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "../platform.h"
 
-_VCRT_ALLOCATOR void* __CRTDECL operator new(size_t _Size){
+_VCRT_ALLOCATOR void* __CRTDECL operator new(size_t _Size) {
 	return malloc(_Size);
 }
 

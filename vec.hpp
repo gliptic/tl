@@ -150,9 +150,16 @@ struct VecAbstract : protected VecSliceAbstract {
 	u8* cap_end_bytes() { return this->c; }
 	
 	void reserve_bytes(usize amount);
-	void enlarge(usize extra);
+	TL_NEVER_INLINE void enlarge(usize extra);
 
-	~VecAbstract() { free(this->begin_bytes()); }
+	~VecAbstract() {
+		// TODO: VC++ doesn't know that it doesn't have to
+		// free pointers known to be NULL. Having this check
+		// makes it omit the free call for e.g. moved vectors,
+		// but it will unnecessarily do the check in other cases.
+		if (this->begin_bytes())
+			free(this->begin_bytes());
+	}
 };
 
 #pragma endregion
@@ -215,7 +222,7 @@ struct VecAbstract {
 	}
 
 	void reserve_bytes(usize amount);
-	void enlarge(usize extra);
+	TL_NEVER_INLINE void enlarge(usize extra);
 
 	~VecAbstract() { free(this->begin_bytes()); }
 };
@@ -246,7 +253,7 @@ struct VecInlineAbstract : protected VecSliceAbstract {
 
 	u8* cap_end_bytes() { return this->c; }
 
-	void enlarge(usize extra);
+	TL_NEVER_INLINE void enlarge(usize extra);
 	void reserve_bytes(usize new_cap);
 
 	~VecInlineAbstract() {
@@ -306,6 +313,7 @@ struct Vec : Base {
 
 	Vec() = default;
 	Vec(Vec&& other) = default;
+	Vec& operator=(Vec&& other) = default;
 
 	Vec(VecSlice<T const> other)
 		: Vec(other.begin(), other.size()) {
@@ -314,6 +322,7 @@ struct Vec : Base {
 	Vec(T const* src, usize len) {
 		usize len_in_bytes = len * sizeof(T);
 		this->reserve_bytes(len_in_bytes);
+		// TODO: Only do this if the copying is trivial
 		memcpy(this->begin(), src, len_in_bytes);
 		this->unsafe_inc_size_bytes(len_in_bytes);
 	}
@@ -327,16 +336,18 @@ struct Vec : Base {
 		if (this->cap_end_bytes() - this->end_bytes() < sizeof(v)) {
 			this->enlarge(sizeof(v));
 		}
-		new (this->unsafe_inc_size_bytes(sizeof(v))) T(v);
+		new (this->unsafe_inc_size_bytes(sizeof(v)), non_null()) T(v);
 	}
 
 	void push_back(T&& v) {
 		if (this->cap_end_bytes() - this->end_bytes() < sizeof(v)) {
 			this->enlarge(sizeof(v));
 		}
-		new (this->unsafe_inc_size_bytes(sizeof(v))) T(move(v));
+		new (this->unsafe_inc_size_bytes(sizeof(v)), non_null()) T(move(v));
 	}
 
+	// TODO: This name implies there's no bounds check, but there is.
+	// The unsafety is in that it's uninitialized. Rename it.
 	T* unsafe_alloc(usize count) {
 		if (usize(this->cap_end_bytes() - this->end_bytes()) < count * sizeof(T))
 			this->enlarge(count * sizeof(T));
@@ -364,6 +375,8 @@ struct Vec : Base {
 	T* cap_end() { return (T *)this->cap_end_bytes(); }
 	usize size() const { return this->slice_const().size(); }
 
+	T& back() { return end()[-1]; }
+
 	void reserve(usize new_cap) {
 		this->reserve_bytes(new_cap * sizeof(T));
 	}
@@ -373,9 +386,21 @@ struct Vec : Base {
 		this->unsafe_set_size_bytes(0);
 	}
 
+	T* unsafe_inc_size(usize count) {
+		assert(usize(this->cap_end_bytes() - this->end_bytes()) >= count * sizeof(T));
+		T* p = this->end();
+		this->unsafe_inc_size_bytes(count * sizeof(T));
+		return p;
+	}
+
 	void unsafe_set_size(usize new_size) {
-		assert(usize(this->cap_end() - this->begin()) <= new_size);
+		assert(usize(this->cap_end() - this->begin()) >= new_size);
 		this->unsafe_set_size_bytes(new_size * sizeof(T));
+	}
+
+	// TODO: This should destruct the popped value
+	void unsafe_pop() {
+		this->unsafe_cut_back_bytes(1);
 	}
 
 	~Vec() {
@@ -386,6 +411,7 @@ private:
 
 	void destroy_all() {
 		for (T& p : slice()) {
+			TL_UNUSED(p); // TODO: VC++ somehow reports p as unused in some cases
 			p.~T();
 		}
 	}
@@ -400,11 +426,15 @@ struct BufferMixed : Vec<u8> {
 	BufferMixed() = default;
 	BufferMixed(BufferMixed&&) = default;
 
+	BufferMixed& operator=(BufferMixed&&) = default;
+
 	template<typename U>
 	void unsafe_push(U const& v) {
 		u8* p = unsafe_alloc(sizeof(U));
-		new (p) U(v);
+		new (p, non_null()) U(v);
 	}
+
+
 };
 
 }

@@ -65,40 +65,6 @@
 # endif
 #endif
 
-#if !TL_LITTLE_ENDIAN && !TL_BIG_ENDIAN
-# if TL_X86 || TL_X86_64
-#  define TL_LITTLE_ENDIAN 1
-# else
-#  define TL_BIG_ENDIAN 1
-# endif
-#endif
-
-#if defined(__cplusplus) // We don't test TL_CPP here, because we assume we can always use C++ inline in C++
-# define TL_INLINE inline
-# if TL_MSVCPP
-#  define TL_FORCE_INLINE __forceinline
-#  define TL_NEVER_INLINE __declspec(noinline)
-# else
-#  define TL_FORCE_INLINE inline
-# endif
-#elif TL_GCC
-# define TL_INLINE static inline
-#elif TL_MSVCPP
-# define TL_INLINE __inline
-# define TL_FORCE_INLINE __forceinline
-# define TL_NEVER_INLINE __declspec(noinline)
-#else
-# define TL_INLINE static
-#endif
-
-#ifndef TL_NEVER_INLINE
-# define TL_NEVER_INLINE
-#endif
-
-#ifndef TL_FORCE_INLINE
-# define TL_FORCE_INLINE TL_INLINE
-#endif
-
 #if !defined(TL_CPP0X)
 # if TL_MSVCPP >= 1600
 #  define TL_CPP0X 1 // C++0x level 1
@@ -156,13 +122,83 @@
 #define TL_TWOS_COMPLEMENT (~(-1)==0)
 #endif
 
+#if !TL_LITTLE_ENDIAN && !TL_BIG_ENDIAN
+# if TL_X86 || TL_X86_64
+#  define TL_LITTLE_ENDIAN 1
+# else
+#  define TL_BIG_ENDIAN 1
+# endif
+#endif
+
+#if defined(__cplusplus) // We don't test TL_CPP here, because we assume we can always use C++ inline in C++
+# define TL_INLINE inline
+# if TL_MSVCPP
+#  define TL_FORCE_INLINE __forceinline
+#  define TL_NEVER_INLINE __declspec(noinline)
+# else
+#  define TL_FORCE_INLINE inline
+# endif
+#elif TL_GCC
+# define TL_INLINE static inline
+#elif TL_MSVCPP
+# define TL_INLINE __inline
+# define TL_FORCE_INLINE __forceinline
+# define TL_NEVER_INLINE __declspec(noinline)
+#else
+# define TL_INLINE static
+#endif
+
+#ifndef TL_NEVER_INLINE
+# define TL_NEVER_INLINE
+#endif
+
+#ifndef TL_FORCE_INLINE
+# define TL_FORCE_INLINE TL_INLINE
+#endif
+
+#if TL_MSVCPP
+# if defined(NDEBUG)
+#  define TL_ASSUME(x) __assume(x)
+# endif
+# define TL_RESTRICT_RETURN __declspec(restrict)
+# define TL_NOALIAS __declspec(noalias)
+# define TL_RESTRICT __restrict
+#endif
+
+#if !defined(TL_ASSUME)
+# if defined(NDEBUG)
+#  define TL_ASSUME(x)
+# else
+#  define TL_ASSUME(x) assert(x)
+#endif
+#endif
+
+#if !defined(TL_ASSUME_NOT_NULL)
+# define TL_ASSUME_NOT_NULL(x) TL_ASSUME((x) != NULL)
+#endif
+
+#if !defined(TL_UNREACHABLE)
+# define TL_UNREACHABLE(x) TL_ASSUME(0)
+#endif
+
+#if !defined(TL_RESTRICT_RETURN)
+# define TL_RESTRICT_RETURN
+#endif
+
+#if !defined(TL_RESTRICT)
+# define TL_RESTRICT
+#endif
+
+#if !defined(TL_NOALIAS)
+# define TL_NOALIAS
+#endif
 
 #if !defined(TL_WINDOWS)
 #define TL_WINDOWS (TL_WIN64 || TL_WIN32)
 #endif
 
 #if !defined(TL_PTR64)
-# if TL_WIN64
+# if TL_X86_64
 #  define TL_PTR64 1
 # else
 #  define TL_PTR64 0
@@ -207,15 +243,19 @@
 #define TL_UNUSED(p) ((void)(p))
 
 #ifdef TL_MSVCPP
-# define TL_PACKED_STRUCT(name) __pragma(pack(push, 1)) struct name __pragma(pack(pop))
+# define TL_PACKED_STRUCT(name) __pragma(pack(push, 1)) struct name {
+# define TL_PACKED_STRUCT_END() }; __pragma(pack(pop))
 #else
-# define TL_PACKED_STRUCT(name) struct __attribute__((packed)) name
+# define TL_PACKED_STRUCT(name) struct __attribute__((packed)) name {
+# define TL_PACKED_STRUCT_END() }
 #endif
 
 // MSVCPP fix-ups
 #if TL_MSVCPP
-# pragma warning(disable: 4200) // zero-sized arrays are standard in C99+
-# pragma warning(disable: 4204) // non-constant initializers are standard in C99+
+# pragma warning(disable: 4200) // Zero-sized arrays are standard in C99+
+# pragma warning(disable: 4204) // Non-constant initializers are standard in C99+
+# pragma warning(disable: 4127) // We want to use constants in conditionals, please
+# pragma warning(disable: 4577) // We don't care that noexcept can't be enforced, exceptions are turned off!
 
 // Turn off stdio.h silliness
 #define _NO_CRT_STDIO_INLINE 1
@@ -223,4 +263,3 @@
 #endif
 
 #endif // UUID_728FDBF69FF04497D59A6F8E9506DF64
-

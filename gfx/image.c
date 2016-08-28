@@ -1,6 +1,6 @@
 #include "image.h"
 
-#include "std.h"
+#include "../std.h"
 //#include <string.h>
 //#include <assert.h>
 //#include <malloc.h>

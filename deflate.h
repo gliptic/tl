@@ -2,7 +2,7 @@
 #define UUID_28D1AF81252F4CF0217271A3585223F2
 
 #include "config.h"
-#include "stream.h"
+#include "io/stream.h"
 #include "inflate.h"
 
 typedef struct tl_deflate {

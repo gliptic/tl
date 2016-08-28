@@ -1,8 +1,8 @@
 #ifndef UUID_917ECCD8563741D5491DF687EA1F876D
 #define UUID_917ECCD8563741D5491DF687EA1F876D
 
-#include "config.h"
-#include "cstdint.h"
+#include "../config.h"
+#include "../cstdint.h"
 
 typedef struct tl_image {
 	u8* pixels;

@@ -28,10 +28,10 @@ extern "C" {
 #pragma float_control(except, off)
 #pragma float_control(precise, on)
 /* NOTE: For VC++, use these flags:
-** For CPUs supporting SSE2: /arch:SSE2 /D "TL_X87=0" /D "GVL_FORCE_SSE2=1"
+** For CPUs supporting SSE2: /arch:SSE2 /D "TL_X87=0" /D "TL_FORCE_SSE2=1"
 ** For compatibility: /D "TL_X87=1"
 **
-** The "GVL_FORCE_SSE2=1" define may be omitted if you're absolutely sure
+** The "TL_FORCE_SSE2=1" define may be omitted if you're absolutely sure
 ** that no multiplications or divisions are done in x87. It may worsen some
 ** optimizations if enabled.
 ** With the above pragmas and operations wrapped in functions, VC++ has a
@@ -42,8 +42,8 @@ extern "C" {
 */
 #elif TL_GCC
 /* NOTE: For gcc on x86, use these flags:
-** For CPUs supporting SSE2: -frounding-math -msse2 -mfpmath=sse -DGVL_X87=0
-** For compatibility: -frounding-math -DGVL_X87=1
+** For CPUs supporting SSE2: -frounding-math -msse2 -mfpmath=sse -DTL_X87=0
+** For compatibility: -frounding-math -DTL_X87=1
 **
 ** Flags that are recommended:
 **     -fno-math-errno
@@ -58,7 +58,7 @@ extern "C" {
 ** function is used, optimizations that assume that certain FPU flags are
 ** set need to be disabled.
 */
-TL_IEEE754_API void gvl_init_ieee();
+TL_IEEE754_API void tl_init_ieee();
 
 TL_API unsigned char const tl_scaleup[10];
 TL_API unsigned char const tl_scaledown[10];
@@ -226,7 +226,7 @@ TL_INLINE double gSqrt(double x)
 
 TL_FORCE_INLINE double gM(double x, double y)
 {
-#if TL_MSVCPP && TL_FORCE_SSE2_FPU && !GVL_X86_64
+#if TL_MSVCPP && TL_FORCE_SSE2_FPU && !TL_X86_64
 	/* Use SSE2 intrinsics to make sure VC++ doesn't cause
 	** incorrect subnormal rounding here. NOTE: This might worsen optimization
 	** somewhat. */
@@ -240,7 +240,7 @@ TL_FORCE_INLINE double gM(double x, double y)
 
 TL_FORCE_INLINE double gD(double x, double y)
 {
-#if TL_MSVCPP && TL_FORCE_SSE2_FPU && !GVL_X86_64
+#if TL_MSVCPP && TL_FORCE_SSE2_FPU && !TL_X86_64
 	/* Use SSE2 intrinsics to make sure VC++ doesn't cause
 	** incorrect subnormal rounding here. NOTE: This might worsen optimization
 	** somewhat. */
@@ -283,7 +283,7 @@ TL_INLINE double gSqrt(double x)
 
 TL_INLINE float gMf(float x, float y)
 {
-#if TL_MSVCPP && TL_FORCE_SSE2_FPU && !GVL_X86_64
+#if TL_MSVCPP && TL_FORCE_SSE2_FPU && !TL_X86_64
 	/* Use SSE intrinsics to make sure VC++ doesn't cause
 	** incorrect subnormal rounding here. NOTE: This might worsen optimization
 	** somewhat. */
@@ -297,7 +297,7 @@ TL_INLINE float gMf(float x, float y)
 
 TL_INLINE float gDf(float x, float y)
 {
-#if TL_MSVCPP && TL_FORCE_SSE_FPU && !GVL_X86_64
+#if TL_MSVCPP && TL_FORCE_SSE_FPU && !TL_X86_64
 	/* Use SSE intrinsics to make sure VC++ doesn't cause
 	** incorrect subnormal rounding here. NOTE: This might worsen optimization
 	** somewhat. */
@@ -311,7 +311,7 @@ TL_INLINE float gDf(float x, float y)
 
 TL_INLINE float gAf(float x, float y)
 {
-#if TL_MSVCPP && TL_FORCE_SSE_FPU && !GVL_X86_64
+#if TL_MSVCPP && TL_FORCE_SSE_FPU && !TL_X86_64
 	// VC++ generates stupid code for just (x+y) in x86. Intrinsics are actually faster!
 	float r;
 	_mm_store_ss(&r, _mm_add_ss(_mm_load_ss(&x), _mm_load_ss(&y)));
@@ -323,7 +323,7 @@ TL_INLINE float gAf(float x, float y)
 
 TL_INLINE float gSf(float x, float y)
 {
-#if TL_MSVCPP && TL_FORCE_SSE_FPU && !GVL_X86_64
+#if TL_MSVCPP && TL_FORCE_SSE_FPU && !TL_X86_64
 	// VC++ generates stupid code for just (x-y) in x86. Intrinsics are actually faster!
 	float r;
 	_mm_store_ss(&r, _mm_sub_ss(_mm_load_ss(&x), _mm_load_ss(&y)));
@@ -443,6 +443,7 @@ inline bool operator==(rdouble a, rdouble b)
 inline rdouble sqrt(rdouble x)
 { return gSqrt(x.value); }
 
+#if 0
 inline rdouble log(rdouble x)
 { return fd_log(x.value); }
 
@@ -457,6 +458,7 @@ inline rdouble atan2(rdouble a, rdouble b)
 
 inline rdouble floor(rdouble x)
 { return fd_floor(x.value); }
+#endif
 
 #if !TL_X87
 

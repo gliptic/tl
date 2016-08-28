@@ -611,6 +611,7 @@ typedef struct tl_tt__active_edge
 
 static tl_tt__active_edge *new_active(tl_tt__edge *e, int off_x, float start_point, void *userdata)
 {
+	TL_UNUSED(userdata);
    tl_tt__active_edge *z = (tl_tt__active_edge *) STBTT_malloc(sizeof(*z), userdata); // @TODO: make a pool of these!!!
    float dxdy = (e->x1 - e->x0) / (e->y1 - e->y0);
    STBTT_assert(e->y0 <= start_point);
@@ -871,6 +872,7 @@ static int tl_tt__tesselate_curve(tl_tt__point *points, int *num_points, float x
 // returns number of contours
 tl_tt__point *tl_tt_FlattenCurves(tl_tt_vertex *vertices, int num_verts, float objspace_flatness, int **contour_lengths, int *num_contours, void *userdata)
 {
+	TL_UNUSED(userdata);
    tl_tt__point *points=0;
    int num_points=0;
 
@@ -940,6 +942,7 @@ error:
 
 void tl_tt_Rasterize(tl_image *result, float flatness_in_pixels, tl_tt_vertex *vertices, int num_verts, float scale_x, float scale_y, int x_off, int y_off, int invert, void *userdata)
 {
+	TL_UNUSED(userdata);
    float scale = scale_x > scale_y ? scale_y : scale_x;
    int winding_count, *winding_lengths;
    tl_tt__point *windings = tl_tt_FlattenCurves(vertices, num_verts, flatness_in_pixels / scale, &winding_lengths, &winding_count, userdata);
@@ -952,7 +955,8 @@ void tl_tt_Rasterize(tl_image *result, float flatness_in_pixels, tl_tt_vertex *v
 
 void tl_tt_FreeBitmap(unsigned char *bitmap, void *userdata)
 {
-   STBTT_free(bitmap, userdata);
+	TL_UNUSED(userdata);
+	STBTT_free(bitmap, userdata);
 }
 
 tl_image tl_tt_GetGlyphBitmap(const tl_tt_fontinfo *info, float scale_x, float scale_y, int glyph, int *xoff, int *yoff)
@@ -1022,7 +1026,7 @@ void tl_tt_MakeCodepointBitmap(const tl_tt_fontinfo *info, tl_image* output, flo
 //
 // bitmap baking
 //
-// This is SUPER-SHITTY packing to keep source code small
+// This is SUPER-SHITTY packing to keep Source code small
 
 #if 0
 extern int tl_tt_BakeFontBitmap(const unsigned char *data, int offset,  // font location (use offset=0 for plain .ttf)

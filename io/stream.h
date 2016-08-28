@@ -1,10 +1,10 @@
 #ifndef UUID_F3740CE70E6B45893FAD7C9B2BC6A2C0
 #define UUID_F3740CE70E6B45893FAD7C9B2BC6A2C0
 
-#include "config.h"
-#include "platform.h"
-#include "cstdint.h"
-#include "vector.h"
+#include "../config.h"
+#include "../platform.h"
+#include "../cstdint.h"
+#include "../vector.h"
 #include <stddef.h>
 
 #if TL_CPP

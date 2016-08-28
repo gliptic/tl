@@ -1,13 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\inflate.c" />
-    <ClCompile Include="..\png.c" />
-    <ClCompile Include="..\rectpack.c" />
-    <ClCompile Include="..\image.c" />
     <ClCompile Include="..\socket.c" />
-    <ClCompile Include="..\truetype.c" />
-    <ClCompile Include="..\stream.c" />
     <ClCompile Include="..\fdlibm\e_rem_pio2.c">
       <Filter>fdlibm</Filter>
     </ClCompile>
@@ -186,8 +180,6 @@
     <ClCompile Include="..\approxmath\tan.c">
       <Filter>approxmath</Filter>
     </ClCompile>
-    <ClCompile Include="..\vorbis.c" />
-    <ClCompile Include="..\riff.c" />
     <ClCompile Include="..\deflate.c" />
     <ClCompile Include="..\codec\polar_code.c">
       <Filter>codec</Filter>
@@ -211,7 +203,6 @@
     <ClCompile Include="..\windows\std.c">
       <Filter>windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\region.c" />
     <ClCompile Include="..\windows\io.c">
       <Filter>windows</Filter>
     </ClCompile>
@@ -224,11 +215,9 @@
     <ClCompile Include="..\windows\runtime_vcpp.cpp">
       <Filter>windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\image.cpp" />
     <ClCompile Include="..\windows\stream.cpp">
       <Filter>windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\stream.cpp" />
     <ClCompile Include="..\approxmath\sincos.cpp">
       <Filter>approxmath</Filter>
     </ClCompile>
@@ -236,23 +225,53 @@
     <ClCompile Include="..\vec.cpp" />
     <ClCompile Include="..\string.cpp" />
     <ClCompile Include="..\bits.c" />
+    <ClCompile Include="..\inflate.c">
+      <Filter>legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pairing_heap.c">
+      <Filter>legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\png.c">
+      <Filter>legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\region.c">
+      <Filter>legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\riff.c">
+      <Filter>legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\treap.c">
+      <Filter>legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\truetype.c">
+      <Filter>legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vorbis.c">
+      <Filter>legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\rectpack.c">
+      <Filter>legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gfx\image.cpp">
+      <Filter>gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gfx\tga.cpp">
+      <Filter>gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\io\stream.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wav.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\inflate.h" />
     <ClInclude Include="..\platform.h" />
     <ClInclude Include="..\cstdint.h" />
-    <ClInclude Include="..\png.h" />
     <ClInclude Include="..\coro.h" />
     <ClInclude Include="..\impl.h" />
     <ClInclude Include="..\config.h" />
-    <ClInclude Include="..\truetype.h" />
-    <ClInclude Include="..\rectpack.h" />
-    <ClInclude Include="..\rect.h" />
     <ClInclude Include="..\socket.h" />
-    <ClInclude Include="..\image.h" />
     <ClInclude Include="..\socket_sys.h" />
     <ClInclude Include="..\memory.h" />
-    <ClInclude Include="..\inflate_impl.h" />
     <ClInclude Include="..\ieee.h" />
     <ClInclude Include="..\fdlibm\fdlibm.h">
       <Filter>fdlibm</Filter>
@@ -267,9 +286,7 @@
     <ClInclude Include="..\approxmath\am.h">
       <Filter>approxmath</Filter>
     </ClInclude>
-    <ClInclude Include="..\vorbis.h" />
     <ClInclude Include="..\list.h" />
-    <ClInclude Include="..\riff.h" />
     <ClInclude Include="..\deflate.h" />
     <ClInclude Include="..\codec\polar_code.h">
       <Filter>codec</Filter>
@@ -294,16 +311,10 @@
       <Filter>codec</Filter>
     </ClInclude>
     <ClInclude Include="..\std.h" />
-    <ClInclude Include="..\region.h" />
     <ClInclude Include="..\io.h" />
-    <ClInclude Include="..\rand.h" />
     <ClInclude Include="..\utf8.h" />
     <ClInclude Include="..\strscan.h" />
     <ClInclude Include="..\char.h" />
-    <ClInclude Include="..\stream.h" />
-    <ClInclude Include="..\stream.hpp" />
-    <ClInclude Include="..\vector.h" />
-    <ClInclude Include="..\image.hpp" />
     <ClInclude Include="..\windows\win.hpp">
       <Filter>windows</Filter>
     </ClInclude>
@@ -315,10 +326,61 @@
     <ClInclude Include="..\rand.hpp" />
     <ClInclude Include="..\string_set.hpp" />
     <ClInclude Include="..\shared_ptr.hpp" />
-    <ClInclude Include="..\vector_old.hpp" />
     <ClInclude Include="..\vec.hpp" />
     <ClInclude Include="..\vector.hpp" />
-    <ClInclude Include="..\filesystem.hpp" />
+    <ClInclude Include="..\inflate.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inflate_impl.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\pairing_heap.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\png.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rand.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rect.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\region.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\riff.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\treap.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\truetype.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vector.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vorbis.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rectpack.h">
+      <Filter>legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\region.hpp" />
+    <ClInclude Include="..\gfx\image.hpp">
+      <Filter>gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\gfx\tga.hpp">
+      <Filter>gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io\stream.hpp">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io\filesystem.hpp">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wav.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="fdlibm">
@@ -333,6 +395,15 @@
     <Filter Include="windows">
       <UniqueIdentifier>{8d6428ee-ebd3-4377-9308-0bfaaf4b7c63}</UniqueIdentifier>
     </Filter>
+    <Filter Include="legacy">
+      <UniqueIdentifier>{a13e2a65-5342-4084-8ce0-a23d1dde270d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gfx">
+      <UniqueIdentifier>{f5518dcb-307c-4312-bb28-de8461331ab9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="io">
+      <UniqueIdentifier>{f2eed4c9-a657-4bc8-842d-35bea9ba7bc1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\codec\polar_model.ppc">
@@ -342,6 +413,9 @@
   <ItemGroup>
     <MASM Include="..\windows\allmul.asm">
       <Filter>windows</Filter>
+    </MASM>
+    <MASM Include="..\approxmath\sincos.asm">
+      <Filter>approxmath</Filter>
     </MASM>
   </ItemGroup>
 </Project>
