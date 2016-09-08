@@ -330,6 +330,7 @@ struct Image : protected ImageSlice {
 	Image& operator=(Image const&) = delete;
 
 	TL_IMAGE_API void alloc_uninit(u32 w, u32 h, u32 bpp);
+	TL_IMAGE_API void copy_from(Image const& other);
 	TL_IMAGE_API void blit_unsafe(Image const& from, u32 x, u32 y);
 	
 	TL_IMAGE_API int pad(Image const& from);

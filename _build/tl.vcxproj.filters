@@ -262,6 +262,12 @@
       <Filter>io</Filter>
     </ClCompile>
     <ClCompile Include="..\wav.cpp" />
+    <ClCompile Include="..\io\archive.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\io\filesystem.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\platform.h" />
@@ -381,6 +387,10 @@
       <Filter>io</Filter>
     </ClInclude>
     <ClInclude Include="..\wav.hpp" />
+    <ClInclude Include="..\runtime.h" />
+    <ClInclude Include="..\io\archive.hpp">
+      <Filter>io</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="fdlibm">

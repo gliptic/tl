@@ -4,8 +4,11 @@
 #include "io/stream.hpp"
 #include "vec.hpp"
 
-int read_wav(
-	tl::Source src,
-	tl::Vec<i16>& sound);
+namespace tl {
+
+int write_wav(Sink& dest, VecSlice<u8 const>& sound);
+int read_wav(Source src, Vec<i16>& sound);
+
+}
 
 #endif // WAV_HPP

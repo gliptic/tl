@@ -31,45 +31,64 @@ struct FilePushableWin : FilePushable {
 	HANDLE f;
 };
 
-struct FilePullableMappingWin : Pullable {
-	FilePullableMappingWin(HANDLE f)
-		: f(f) {
+struct FilePullableMappingWin : EofPullable {
+	FilePullableMappingWin(void* base, HANDLE f, HANDLE fm)
+		: base(base), f(f), fm(fm) {
 	}
 
 	~FilePullableMappingWin() {
+		if (base) UnmapViewOfFile(base);
+		if (fm) CloseHandle(fm);
 		if (f) CloseHandle(f);
 	}
 
-	Result pull(Source& src, usize min_size);
-
-	HANDLE f;
+	void* base;
+	HANDLE f, fm;
 };
 
-static FilePullableMappingWin* open_mapping(char const* path) {
+static Source open_mapping(char const* path) {
 	HANDLE h = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE fm = INVALID_HANDLE_VALUE;
+	void* p = NULL;
+	tl::VecSlice<u8 const> sl;
 
 	if (h == INVALID_HANDLE_VALUE) {
 		printf("%d\n", GetLastError());
+		return Source();
 	}
 
-	HANDLE fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0, 0, NULL);
+	fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0, 0, NULL);
 
 	if (fm == INVALID_HANDLE_VALUE) {
 		printf("%d\n", GetLastError());
+		CloseHandle(h);
+		return Source();
 	}
 
-	//MapViewOfFile(fm, FILE_MAP_READ, )
+	p = MapViewOfFile(fm, FILE_MAP_READ, 0, 0, 0);
 
-	return new FilePullableMappingWin(h);
+	if (p == NULL) {
+		printf("%d\n", GetLastError());
+		CloseHandle(h);
+		CloseHandle(fm);
+		return Source();
+	}
+
+	MEMORY_BASIC_INFORMATION meminfo;
+	if (VirtualQuery(p, &meminfo, sizeof(meminfo)) != 0) {
+		sl = tl::VecSlice<u8 const>((u8 const*)p, (u8 const*)p + meminfo.RegionSize);
+	}
+
+	return Source(std::make_unique<FilePullableMappingWin>(p, h, fm), sl);
 }
 
-FilePullable* FilePullable::open(char const* path) {
+static Source open(char const* path) {
 	HANDLE h = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (h == INVALID_HANDLE_VALUE) {
 		printf("%d\n", GetLastError());
 	}
-	return new FilePullableWin(h);
+	return Source(std::make_unique<FilePullableWin>(h));
 }
 
 FilePushable* FilePushable::open(char const* path) {
@@ -99,19 +118,19 @@ Pullable::Result FilePullableWin::pull(Source& src, usize min_size) {
 }
 
 Source Source::from_file(char const* path) {
-	return Source(std::unique_ptr<Pullable>(FilePullable::open(path)));
+	return open_mapping(path);
 }
 
 Source Source::from_file(StringSlice path) {
 	Vec<char> path_cstr(c_str(path));
-	return Source(std::unique_ptr<Pullable>(FilePullable::open(path_cstr.begin())));
+	return open_mapping(path_cstr.begin());
 }
 
 
 // Sink
 
 int FilePushableWin::push(SinkBuf& src, usize min_size) {
-	auto to_write = src.get_written();
+	auto to_write = src.get_to_write();
 	usize amount_to_write = to_write.size();
 	DWORD written;
 	BOOL r = WriteFile(this->f, to_write.begin(), (DWORD)amount_to_write, &written, NULL);
@@ -119,18 +138,16 @@ int FilePushableWin::push(SinkBuf& src, usize min_size) {
 	this->base_position += written;
 	src.unsafe_cut_front(written);
 
-	usize s = src.size();
+	assert(src.to_write_size() == 0);
 
-	if (s == 0) {
-		src.unsafe_set_buffer(buffer, buffer, buffer + buffer_size);
-		s = buffer_size;
-	}
+	src.unsafe_set_buffer(buffer, buffer, buffer + buffer_size);
+	usize s = buffer_size;
 
 	if (s < min_size) {
-		usize cur_offs = to_write.end() - buffer;
-		buffer = (u8 *)memrealloc(buffer, cur_offs + min_size, buffer_size);
-		buffer_size = cur_offs + min_size;
-		src.unsafe_set_buffer(buffer + cur_offs, buffer + cur_offs, buffer + buffer_size);
+		//usize cur_offs = to_write.end() - buffer;
+		buffer = (u8 *)memrealloc(buffer, min_size, buffer_size);
+		buffer_size = min_size;
+		src.unsafe_set_buffer(buffer, buffer, buffer + buffer_size);
 	}
 
 	return written < amount_to_write;

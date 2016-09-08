@@ -29,6 +29,49 @@ inline i16 sample8_to_sample16(u8 s) {
 	return (i16(s) - 128) * 30;
 }
 
+namespace tl {
+
+int write_wav(Sink& dest, VecSlice<u8 const>& sound) {
+	WavHeader header;
+
+	header.riff_hdr = quad('R', 'I', 'F', 'F');
+	header.wave_hdr = quad('W', 'A', 'V', 'E');
+	header.fmt_hdr = quad('f', 'm', 't', ' ');
+	header.dummy0 = 16;
+	header.dummy1 = 1;
+	header.dummy2 = 1;
+	header.sample_rate = 22050;
+	header.bytes_per_second = 22050 * 1 * 1;
+	header.bytes_per_frame = 1 * 1;
+	header.sample_bits = 8;
+	header.data_hdr = quad('d', 'a', 't', 'a');
+	header.data_size = sound.size() * 1 * 1;
+
+	auto rounded_size = (sound.size() + 1) & ~1;
+
+	CHECK(!dest.put_raw<WavHeader>(header));
+
+	{
+		auto w = dest.window(rounded_size);
+		CHECK(!w.empty());
+
+		u8* destp = w.begin();
+
+		for (usize i = 0; i < sound.size(); ++i) {
+			*destp++ = u8(sound[i] + 128);
+		}
+
+		if (rounded_size != sound.size()) {
+			*destp++ = 0;
+		}
+	}
+
+	return 0;
+
+fail:
+	return 1;
+}
+
 int read_wav(
 	tl::Source src,
 	tl::Vec<i16>& sound) {
@@ -81,4 +124,6 @@ int read_wav(
 
 fail:
 	return 1;
+}
+
 }

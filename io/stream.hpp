@@ -66,6 +66,9 @@ struct SourceBuf : private VecSlice<u8 const> {
 	SourceBuf(u8 const* cur_init, u8 const* end_init)
 		: VecSlice<u8 const>(cur_init, end_init) {}
 
+	SourceBuf(VecSlice<u8 const> slice)
+		: VecSlice<u8 const>(slice) {}
+
 	SourceBuf(SourceBuf&& other) = default;
 	SourceBuf& operator=(SourceBuf&) = delete;
 
@@ -100,7 +103,7 @@ struct SinkBuf {
 	void unsafe_put(u8 byte) { *cur++ = byte; }
 	void unsafe_put(u8 const* data, usize size) { memcpy(this->cur, data, size); this->cur += size; }
 
-	VecSlice<u8 const> get_written() const {
+	VecSlice<u8 const> get_to_write() const {
 		return VecSlice<u8 const>(beg, cur);
 	}
 
@@ -115,11 +118,11 @@ struct SinkBuf {
 		this->end = end_new;
 	}
 
-	usize size() const {
+	usize available_size() const {
 		return end - cur;
 	}
 
-	usize written_size() const {
+	usize to_write_size() const {
 		return cur - beg;
 	}
 
@@ -132,8 +135,18 @@ protected:
 struct Source : SourceBuf {
 	Source(Source&& other) = default;
 
+	Source() {}
+
 	Source(std::unique_ptr<Pullable> src_init)
 	 : src(std::move(src_init)) {
+	}
+
+	Source(std::unique_ptr<Pullable> src_init, tl::VecSlice<u8 const> slice)
+		: src(std::move(src_init)), SourceBuf(slice) {
+	}
+
+	operator void const*() const {
+		return src.get();
 	}
 
 	u8 get_u8_def(u8 def = 0) {
@@ -202,6 +215,8 @@ struct Sink : SinkBuf {
 
 	static usize const direct_write_threshold = 1024;
 
+	Sink() {}
+
 	Sink(Sink&& other) = default;
 
 	Sink(std::unique_ptr<Pushable> snk_init)
@@ -209,6 +224,10 @@ struct Sink : SinkBuf {
 	}
 
 	~Sink() { this->flush(); }
+
+	operator void const*() const {
+		return snk.get();
+	}
 	
 	int put(u8 byte) {
 		return check_push() ? 0 : (unsafe_put(byte), 1);
@@ -223,9 +242,9 @@ struct Sink : SinkBuf {
 	}
 
 	template<typename T>
-	int put(T data) {
+	int put_raw(T data) {
 		if (check_push(sizeof(T))) return 1;
-		unsafe_put((u8 const*)&data, sizeof(T));
+		unsafe_put((u8 const *)&data, sizeof(T));
 
 		return 0;
 	}
@@ -250,7 +269,7 @@ struct Sink : SinkBuf {
 	}
 
 	usize position() const {
-		return this->snk->base_position + this->written_size();
+		return this->snk->base_position + this->to_write_size();
 	}
 
 	static Sink from_file(char const* path);
@@ -268,7 +287,7 @@ protected:
 struct PushableVector : Pushable {
 
 	int push(SinkBuf& owner, usize min_size) {
-		auto to_write = owner.get_written();
+		auto to_write = owner.get_to_write();
 
 		this->base_position += to_write.size();
 		vec.unsafe_set_size(vec.size() + to_write.size());
@@ -295,12 +314,6 @@ private:
 struct SinkVector : Sink {
 	SinkVector() : Sink(std::make_unique<PushableVector>()) {
 	}
-
-	/*
-	usize current_size() {
-		return static_cast<PushableVector *>(this->snk.get())->size() + this->written_size();
-	}
-	*/
 
 	tl::Vec<u8> unwrap_vec() {
 		auto v = this->unwrap();
@@ -348,7 +361,6 @@ struct FixedBufferPullable : Pullable {
 };
 
 struct FilePullable : FixedBufferPullable {
-	static FilePullable* open(char const* path);
 };
 
 struct FixedBufferPushable : Pushable {
@@ -365,6 +377,12 @@ struct FixedBufferPushable : Pushable {
 
 	u8* buffer;
 	usize buffer_size;
+};
+
+struct EofPullable : Pullable {
+	Result pull(Source&, usize) {
+		return Result::Eof;
+	}
 };
 
 struct FilePushable : FixedBufferPushable {

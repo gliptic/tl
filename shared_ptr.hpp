@@ -63,15 +63,17 @@ struct Rc {
 		_release();
 	}
 	
-	Rc(Rc const& b)	{
+	/*
+	explicit Rc(Rc const& b) {
 		_set(b.get());
 	}
 
 	template<typename SrcT>
-	Rc(Rc<SrcT> const& b) {
+	explicit Rc(Rc<SrcT> const& b) {
 		T* p = b.get();
 		_set(p);
 	}
+	*/
 
 	Rc(Rc&& b) {
 		v = b.get();
@@ -88,6 +90,11 @@ struct Rc {
 		b.v = 0;
 	}
 
+	Rc clone() const {
+		return Rc(v, SharedOwnership());
+	}
+
+	/*
 	Rc& operator=(Rc const& b) {
 		_reset_shared(b.get());
 		return *this;
@@ -98,10 +105,10 @@ struct Rc {
 		T* p = b.get();
 		_reset_shared(p);
 		return *this;
-	}
+	}*/
 
 	Rc& operator=(Rc&& b) {
-		_reset_shared(b.get());
+		_reset_fresh(b.get());
 		b.v = 0;
 		return *this;
 	}
@@ -109,7 +116,7 @@ struct Rc {
 	template<typename SrcT>
 	Rc& operator=(Rc<SrcT>&& b) {
 		T* p = b.get();
-		_reset_shared(p);
+		_reset_fresh(p);
 		b.v = 0;
 		return *this;
 	}
@@ -162,6 +169,13 @@ private:
 		assert(v_new != v); // self-reset is invalid
 		_release();
 		v = v_new;
+	}
+
+	void _reset_fresh(T* v_new) {
+		T* old = v;
+		v = v_new;
+		if(old)
+			old->release();
 	}
 	
 	// Shares ownership

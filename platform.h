@@ -178,7 +178,7 @@
 #endif
 
 #if !defined(TL_UNREACHABLE)
-# define TL_UNREACHABLE(x) TL_ASSUME(0)
+# define TL_UNREACHABLE() TL_ASSUME(0)
 #endif
 
 #if !defined(TL_RESTRICT_RETURN)

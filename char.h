@@ -4,6 +4,10 @@
 #include "cstdint.h"
 #include "config.h"
 
+#if TL_CPP
+extern "C" {
+#endif
+
 #define TL_CHAR_CNTRL	0x01
 #define TL_CHAR_SPACE	0x02
 #define TL_CHAR_PUNCT	0x04
@@ -33,6 +37,10 @@
 #define tl_char_toupper(c)	((c) - (tl_char_islower(c) >> 1))
 #define tl_char_tolower(c)	((c) + tl_char_isupper(c))
 
-TL_API const uint8_t tl_char_bits[257];
+extern const uint8_t tl_char_bits[257];
+
+#if TL_CPP
+}
+#endif
 
 #endif // TL_CHAR_H

@@ -38,7 +38,7 @@ int write_tga(Sink& sink, ImageSlice img, Palette const& pal) {
 	header.dummy4 = 8;
 	header.dummy5 = 0;
 
-	sink.put<TgaHeader>(header);
+	sink.put_raw<TgaHeader>(header);
 
 	u32 image_width = header.width;
 	u32 image_height = header.height;

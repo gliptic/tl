@@ -391,6 +391,8 @@
     <ClCompile Include="..\gfx\tga.cpp" />
     <ClCompile Include="..\ieee.c" />
     <ClCompile Include="..\inflate.c" />
+    <ClCompile Include="..\io\archive.cpp" />
+    <ClCompile Include="..\io\filesystem.cpp" />
     <ClCompile Include="..\io\stream.cpp" />
     <ClCompile Include="..\pairing_heap.c" />
     <ClCompile Include="..\png.c" />
@@ -421,10 +423,17 @@
     <ClCompile Include="..\wav.cpp" />
     <ClCompile Include="..\windows\io.c" />
     <ClCompile Include="..\windows\runtime_vc.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\windows\runtime_vcpp.cpp" />
+    <ClCompile Include="..\windows\runtime_vcpp.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\windows\std.c" />
     <ClCompile Include="..\windows\stream.cpp" />
   </ItemGroup>
@@ -464,6 +473,7 @@
     <ClInclude Include="..\impl.h" />
     <ClInclude Include="..\inflate.h" />
     <ClInclude Include="..\io.h" />
+    <ClInclude Include="..\io\archive.hpp" />
     <ClInclude Include="..\io\filesystem.hpp" />
     <ClInclude Include="..\io\stream.hpp" />
     <ClInclude Include="..\list.h" />
@@ -479,6 +489,7 @@
     <ClInclude Include="..\region.h" />
     <ClInclude Include="..\region.hpp" />
     <ClInclude Include="..\riff.h" />
+    <ClInclude Include="..\runtime.h" />
     <ClInclude Include="..\shared_ptr.hpp" />
     <ClInclude Include="..\socket.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>

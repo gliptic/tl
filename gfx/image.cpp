@@ -223,6 +223,15 @@ void Image::alloc_uninit(u32 w, u32 h, u32 bpp_init) {
 	this->bpp = bpp_init;
 }
 
+void Image::copy_from(Image const& other) {
+	usize size = other.pitch * other.dim.y;
+	this->pixels = (u8 *)realloc(this->pixels, size);
+	this->dim = other.dim;
+	this->pitch = other.pitch;
+	this->bpp = other.bpp;
+	memcpy(this->pixels, other.pixels, size);
+}
+
 Image ImageSlice::convert(u32 bpp_new, tl::Palette* pal) {
 	Image ret(this->dim.x, this->dim.y, bpp_new);
 	ret.blit(*this, pal);

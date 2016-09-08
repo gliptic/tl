@@ -302,6 +302,61 @@ void VecInlineAbstract<InlineSize>::reserve_bytes(usize new_cap) {
 #pragma endregion
 
 #pragma region Vec
+
+template<typename T>
+inline usize concat_size_1(T) {
+	return 1;
+}
+
+template<typename T>
+inline usize concat_size_1(tl::VecSlice<T> first) {
+	return first.size();
+}
+
+template<typename T>
+inline usize concat_size_1(tl::VecSlice<T const> first) {
+	return first.size();
+}
+
+template<typename T>
+inline usize concat_size() {
+	return 0;
+}
+
+template<typename T, typename First, typename... Rest>
+usize concat_size(First first, Rest... rest) {
+	return concat_size_1<T>(first) + concat_size<T>(rest...);
+}
+
+template<typename T>
+inline T* concat_write_1(T* dest, T first) {
+	*dest = first;
+	return dest + 1;
+}
+
+template<typename T>
+inline T* concat_write_1(T* dest, tl::VecSlice<T> first) {
+	memcpy(dest, first.begin(), first.size());
+	return dest + first.size();
+}
+
+template<typename T>
+inline T* concat_write_1(T* dest, tl::VecSlice<T const> first) {
+	memcpy(dest, first.begin(), first.size());
+	return dest + first.size();
+}
+
+template<typename T>
+inline T* concat_write(T* dest) {
+	return dest;
+}
+
+template<typename T, typename First, typename... Rest>
+inline T* concat_write(T* dest, First first, Rest... rest) {
+	dest = concat_write_1(dest, first);
+	return concat_write(dest, rest...);
+}
+
 template<typename T, typename Base = VecAbstract>
 struct Vec : Base {
 
@@ -330,6 +385,16 @@ struct Vec : Base {
 	Vec(usize capacity) {
 		usize capacity_in_bytes = capacity * sizeof(T);
 		this->reserve_bytes(capacity_in_bytes);
+	}
+
+	template<typename... Args>
+	static Vec concat(Args... args) {
+		usize size = concat_size<T>(args...);
+		Vec vec(size);
+
+		concat_write<T>(vec.begin(), args...);
+		vec.unsafe_inc_size(size);
+		return move(vec);
 	}
 
 	void push_back(T const& v) {

@@ -5,6 +5,12 @@
 #include "../shared_ptr.hpp"
 #include "stream.hpp"
 
+#if TL_WINDOWS
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
+
 namespace tl {
 
 struct FsNodeImp : RcNode {
@@ -14,9 +20,8 @@ struct FsNodeImp : RcNode {
 };
 
 struct FsNode {
-	Rc<FsNodeImp> imp;
 
-	inline FsNode(String&& path_init);
+	static Rc<FsNodeImp> from_path(String&& full_path);
 
 	FsNode(FsNodeImp* imp_init)
 		: imp(imp_init) {
@@ -37,6 +42,10 @@ struct FsNode {
 	Sink try_get_sink() {
 		return imp->try_get_sink();
 	}
+
+private:
+	Rc<FsNodeImp> imp;
+	//inline FsNode(String&& path_init);
 };
 
 struct FsNodeFilesystem : FsNodeImp {
@@ -55,24 +64,10 @@ struct FsNodeFilesystem : FsNodeImp {
 	// NOTE: Assumes 'a' does not have a directory separator at the end
 	static String join(StringSlice a, StringSlice b) {
 
-		String result(a.size() + 1 + b.size());
-
-		u8* dest = result.begin();
-		memcpy(dest, a.begin(), a.size());
-		dest += a.size();
-		*dest++ = '/';
-		memcpy(dest, b.begin(), b.size());
-		dest += b.size();
-		result.unsafe_set_size(dest - result.begin());
-
-		return move(result);
+		return String::concat(a, u8('/'), b);
 	}
 
-	Rc<FsNodeImp> go(StringSlice name) {
-		String full_path(join(this->path.slice_const(), name));
-
-		return Rc<FsNodeImp>(new FsNodeFilesystem(move(full_path)));
-	}
+	Rc<FsNodeImp> go(StringSlice name);
 
 	Source try_get_source() {
 		return Source::from_file(path.slice_const());
@@ -83,9 +78,10 @@ struct FsNodeFilesystem : FsNodeImp {
 	}
 };
 
+/*
 FsNode::FsNode(String&& path_init)
 	: imp(new FsNodeFilesystem(std::move(path_init))) {
-}
+}*/
 
 }
 
