@@ -100,6 +100,10 @@ struct VecSlice : protected VecSliceAbstract {
 		this->unsafe_cut_front_bytes(amount * sizeof(T));
 	}
 
+	void unsafe_cut_back(usize amount) {
+		this->unsafe_cut_back_bytes(amount * sizeof(T));
+	}
+
 	T& unsafe_pop_front() {
 		T& r = *this->begin();
 		this->unsafe_cut_front_bytes(sizeof(T));

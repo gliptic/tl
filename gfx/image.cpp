@@ -240,7 +240,7 @@ Image ImageSlice::convert(u32 bpp_new, tl::Palette* pal) {
 
 void BaseBlitContext::init_blit_context(
 	tl::Cursor* sources, ImageSlice* to, usize target_count,
-	tl::Cursor* targets, ImageSlice* from, usize source_count, i32 x, i32 y) {
+	tl::Cursor* targets, ImageSlice* from, usize source_count, i32& x, i32& y) {
 
 	this->dim = from[0].dim;
 	VectorU2 todim = to[0].dim;

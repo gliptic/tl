@@ -53,14 +53,14 @@ static Source open_mapping(char const* path) {
 	tl::VecSlice<u8 const> sl;
 
 	if (h == INVALID_HANDLE_VALUE) {
-		printf("%d\n", GetLastError());
+		printf("%s: %d\n", path, GetLastError());
 		return Source();
 	}
 
 	fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0, 0, NULL);
 
 	if (fm == INVALID_HANDLE_VALUE) {
-		printf("%d\n", GetLastError());
+		printf("%s: %d\n", path, GetLastError());
 		CloseHandle(h);
 		return Source();
 	}
@@ -68,7 +68,7 @@ static Source open_mapping(char const* path) {
 	p = MapViewOfFile(fm, FILE_MAP_READ, 0, 0, 0);
 
 	if (p == NULL) {
-		printf("%d\n", GetLastError());
+		printf("%s: %d\n", path, GetLastError());
 		CloseHandle(h);
 		CloseHandle(fm);
 		return Source();

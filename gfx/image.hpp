@@ -266,6 +266,10 @@ struct ImageSlice {
 		return this->pitch * this->dim.y;
 	}
 
+	u32 row_pitch() const {
+		return this->pitch;
+	}
+
 	u8* ptr(u32 x, u32 y, u32 lbpp) {
 		return this->pixels + y*this->pitch + x*lbpp;
 	}
@@ -296,6 +300,7 @@ struct Image : protected ImageSlice {
 	using ImageSlice::crop_square_sprite_v;
 	using ImageSlice::bytespp;
 	using ImageSlice::lines_range;
+	using ImageSlice::row_pitch;
 	using ImageSlice::slice;
 
 	Image() {
@@ -360,7 +365,7 @@ struct BaseBlitContext {
 	void clip(i32& x, i32& y, VectorU2& src, VectorU2 todim);
 	void init_blit_context(
 		tl::Cursor* sources, ImageSlice* to, usize target_count,
-		tl::Cursor* targets, ImageSlice* from, usize source_count, i32 x, i32 y);
+		tl::Cursor* targets, ImageSlice* from, usize source_count, i32& x, i32& y);
 };
 
 struct UnsafeNoClip {};

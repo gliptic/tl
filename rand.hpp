@@ -53,6 +53,12 @@ struct LcgPair {
 		s[1] = b_init;
 	}
 
+	static LcgPair from_bits(u32 a, u32 b) {
+		a = a*2654435761 ^ b;
+		b = b*2654435761 ^ a;
+		return LcgPair(a, b);
+	}
+
 	u32 next() {
 		u32 x = s[0];
 		s[0] = s[0] * 29943829 + 0xffff;
@@ -81,7 +87,7 @@ struct LcgPair {
 	VectorI2 get_vectori2_f64(f64 scaled_max) {
 		u32 x = s[0], y = s[1];
 		s[0] = s[0] * 29943829 + 0xffff;
-		s[1] = s[1] * 29943829 + 0xffff;
+		s[1] = s[1] * 29943829 + 0xfffff;
 
 		return VectorI2(lim_f64(x, scaled_max), lim_f64(y, scaled_max));
 	}
@@ -89,7 +95,7 @@ struct LcgPair {
 	VectorI2 get_vectori2_f64(VectorD2 scaled_max) {
 		u32 x = s[0], y = s[1];
 		s[0] = s[0] * 29943829 + 0xffff;
-		s[1] = s[1] * 29943829 + 0xffff;
+		s[1] = s[1] * 29943829 + 0xfffff;
 
 		return VectorI2(lim_f64(x, scaled_max.x), lim_f64(y, scaled_max.y));
 	}
