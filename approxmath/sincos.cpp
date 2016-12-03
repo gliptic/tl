@@ -126,6 +126,39 @@ VectorI2 sincos_fixed2(i32 x) {
 	return VectorI2(ri.m128i_i32[0], ri.m128i_i32[1]);
 }
 
+VectorD2 sincos_f64(i32 x) {
+	f64 in_scale = 128.0 * 65536.0 / tl::pi2;
+	f64 in_scalesq = in_scale * in_scale;
+	f64 out_scale = 65536.0;
+
+	f64 const p1 = 1.27323954;
+	f64 const p2 = -0.405284735;
+	f64 const p3 = .225;
+
+	f64 const c1 = ((1.0 - p3) * out_scale * p1 / in_scale);
+	f64 const c2 = ((1.0 - p3) * out_scale * p2 / in_scalesq);
+	f64 const c3 = (p3 / out_scale) / (1.0 - p3) / (1.0 - p3);
+
+	__m128d s1 = _mm_set_pd(c1, c1);
+	__m128d s2 = _mm_set_pd(c2, c2);
+	__m128d s3 = _mm_set_pd(c3, c3);
+	__m128d abs = *(__m128d *)&abs_mask;
+
+	u64 xx = ((u64(x) << 32) | u64(u32(x) + (32 << 16)));
+	__m128i v = _mm_srai_epi32(_mm_slli_epi32(_mm_set_epi64x(0, xx), 9), 9);
+	__m128d f = _mm_cvtepi32_pd(v);  // f = (x, x + pi/2)
+
+	auto sc = _mm_mul_pd(f, s1); // sc = s1 * f
+
+	sc = _mm_add_pd(sc, _mm_mul_pd(_mm_mul_pd(f, s2), _mm_and_pd(f, abs))); // sc += s2 * f * abs(f)
+
+	sc = _mm_add_pd(sc, _mm_mul_pd(_mm_mul_pd(sc, _mm_and_pd(sc, abs)), s3)); // r += s3 * r * abs(r)
+
+	//auto ri = _mm_cvttpd_epi32(sc);
+
+	return VectorD2(sc.m128d_f64[0], sc.m128d_f64[1]);
+}
+
 #else
 
 inline i32 clamp_ang(i32 x) {

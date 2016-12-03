@@ -247,7 +247,7 @@ struct ImageSlice {
 	}
 
 	bool is_inside(tl::VectorI2 pos) const {
-		return (pos.x >= 0 && (u32)pos.x < this->dim.x) && (pos.y >= 0 && (u32)pos.y < this->dim.y);
+		return ((u32)pos.x < this->dim.x) && ((u32)pos.y < this->dim.y);
 	}
 
 	bool is_empty() const {

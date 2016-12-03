@@ -386,6 +386,17 @@ struct Vec : Base {
 		this->unsafe_inc_size_bytes(len_in_bytes);
 	}
 
+	Vec(usize len, T const& value) {
+		usize len_in_bytes = len * sizeof(T);
+		this->reserve_bytes(len_in_bytes);
+
+		auto* p = this->begin();
+		for (usize i = 0; i < len; ++i) {
+			new (p + i, tl::non_null()) T(value);
+		}
+		this->unsafe_inc_size_bytes(len_in_bytes);
+	}
+
 	Vec(usize capacity) {
 		usize capacity_in_bytes = capacity * sizeof(T);
 		this->reserve_bytes(capacity_in_bytes);
