@@ -242,6 +242,10 @@ struct ImageSlice {
 		return this->dim.y;
 	}
 
+	VectorU2 dimensions() const {
+		return this->dim;
+	}
+
 	u32 bytespp() const {
 		return this->bpp;
 	}
@@ -287,6 +291,7 @@ struct Image : protected ImageSlice {
 
 	using ImageSlice::width;
 	using ImageSlice::height;
+	using ImageSlice::dimensions;
 	using ImageSlice::data;
 	using ImageSlice::size;
 	using ImageSlice::blit;

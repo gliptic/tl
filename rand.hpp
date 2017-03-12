@@ -99,6 +99,14 @@ struct LcgPair {
 
 		return VectorI2(lim_f64(x, scaled_max.x), lim_f64(y, scaled_max.y));
 	}
+
+	VectorI2 get_vectori2(VectorI2 max) {
+		u32 x = s[0], y = s[1];
+		s[0] = s[0] * 29943829 + 0xffff;
+		s[1] = s[1] * 29943829 + 0xfffff;
+
+		return VectorI2(lim(x, max.x), lim(y, max.y));
+	}
 };
 
 }
