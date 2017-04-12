@@ -11,7 +11,7 @@ inline u32 quad(char a, char b, char c, char d) {
 tl::Vec<u8> ArchiveBuilder::write() {
 
 	tl::SinkVector out;
-	out.put_raw(quad('h', 'a', 'r', 'c'));
+	out.put_raw(quad('h', 'a', 'r', 'c')); // FIXME, not endian neutral
 	out.put_raw(u32(0)); // Offset to tree table
 
 	// Write streams
@@ -46,7 +46,7 @@ tl::Vec<u8> ArchiveBuilder::write() {
 	}
 
 	auto vec = out.unwrap_vec();
-	memcpy(vec.begin() + 4, &trees[0].pos, sizeof(u32));
+	memcpy(vec.begin() + 4, &trees[0].pos, sizeof(u32)); // FIXME, not endian neutral
 
 	return move(vec);
 }

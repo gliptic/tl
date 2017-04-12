@@ -41,6 +41,17 @@ private:
 	mutable i32 _ref_count; // You should be able to have Rc<T const>
 };
 
+template<typename T>
+struct RcBox : RcNode, T {
+	template<typename U>
+	RcBox(U&& x) : T(move(x)) { }
+};
+
+template<typename T>
+RcBox<T>* rc_box(T&& x) {
+	return new RcBox<T>(x);
+}
+
 struct SharedOwnership {};
 
 template<typename T>
@@ -205,6 +216,11 @@ private:
 	
 	T* v;
 };
+
+template<typename T>
+Rc<T> rc(T* x) {
+	return Rc<T>(x);
+}
 
 }
 

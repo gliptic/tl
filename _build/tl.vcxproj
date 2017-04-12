@@ -396,7 +396,7 @@
     <ClCompile Include="..\io\stream.cpp" />
     <ClCompile Include="..\pairing_heap.c" />
     <ClCompile Include="..\png.c" />
-    <ClCompile Include="..\rectpack.c" />
+    <ClCompile Include="..\rectpack.cpp" />
     <ClCompile Include="..\region.c" />
     <ClCompile Include="..\riff.c" />
     <ClCompile Include="..\socket.c">
@@ -485,7 +485,7 @@
     <ClInclude Include="..\rand.hpp" />
     <ClInclude Include="..\rect.h" />
     <ClInclude Include="..\rect.hpp" />
-    <ClInclude Include="..\rectpack.h" />
+    <ClInclude Include="..\rectpack.hpp" />
     <ClInclude Include="..\region.h" />
     <ClInclude Include="..\region.hpp" />
     <ClInclude Include="..\riff.h" />

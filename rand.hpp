@@ -66,14 +66,19 @@ struct LcgPair {
 	}
 
 	static i32 lim(u32 v, i32 max) {
-		double r = v * (1.0 / (1ull << 32));
-		double r2 = r * max;
+		f64 r = v * (1.0 / (1ull << 32));
+		f64 r2 = r * max;
 		return i32(r2);
 	}
 
 	static i32 lim_f64(u32 v, f64 scaled_max) {
-		double r = (i32)v * scaled_max;
+		f64 r = (i32)v * scaled_max;
 		return i32(r);
+	}
+
+	static f64 lim_f64_to_f64(u32 v, f64 scaled_max) {
+		f64 r = (i32)v * scaled_max;
+		return r;
 	}
 
 	i32 get_i32(i32 max) {
@@ -82,6 +87,10 @@ struct LcgPair {
 
 	i32 get_i32(f64 scaled_max) {
 		return lim_f64(this->next(), scaled_max);
+	}
+
+	f64 get_f64(f64 scaled_max) {
+		return lim_f64_to_f64(this->next(), scaled_max);
 	}
 
 	VectorI2 get_vectori2_f64(f64 scaled_max) {

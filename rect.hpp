@@ -127,8 +127,12 @@ public:
 		return RowMajorRange(*this);
 	}
 
-	bool valid() {
+	bool valid() const {
 		return x1 <= x2 && y1 <= y2;
+	}
+
+	bool empty() const {
+		return x1 == x2 && y1 == y2;
 	}
 	
 	void join(BasicRect const& b) {
