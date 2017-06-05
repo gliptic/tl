@@ -9,6 +9,12 @@ namespace tl {
 typedef Vec<u8> String;
 typedef VecSlice<u8 const> StringSlice;
 
+/* TODO
+struct StringSliceTerminated : StringSlice {
+	using StringSlice::StringSlice;
+};
+*/
+
 struct StringSliceLiteral : StringSlice {
 	using StringSlice::StringSlice;
 };

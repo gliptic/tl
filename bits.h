@@ -32,41 +32,51 @@ extern "C" {
 
 #if TL_MSVCPP
 
-TL_INLINE int tl_ffs(u32 x) {
+TL_INLINE i32 tl_ffs(u32 x) {
 	unsigned long r; _BitScanForward(&r, x); return r;
 }
 
-TL_INLINE int tl_fls(u32 x) {
+TL_INLINE i32 tl_fls(u32 x) {
 	unsigned long r; _BitScanReverse(&r, x); return r;
 }
 
 #if TL_X86_64
-TL_INLINE int tl_fls64(u64 x) {
+TL_INLINE i32 tl_fls64(u64 x) {
 	unsigned long r; _BitScanReverse64(&r, x); return r;
 }
 # define TL_HAS_FLS64 1
 #endif
 
-TL_INLINE int tl_log2(u32 v) {
+TL_INLINE i32 tl_log2(u32 v) {
 	unsigned long r;
 	if(!_BitScanReverse(&r, v))
 		r = 0;
 	return r;
 }
 
-TL_INLINE int tl_top_bit(u32 v) {
+TL_INLINE i32 tl_top_bit(u32 v) {
 	unsigned long r;
 	if(!_BitScanReverse(&r, v))
 		return -1;
 	return r;
 }
 
-TL_INLINE int tl_bottom_bit(u32 v) {
+TL_INLINE i32 tl_bottom_bit(u32 v) {
 	unsigned long r;
 	if(!_BitScanForward(&r, v))
 		return -1;
 	return r;
 }
+
+#if TL_X86_64
+TL_INLINE i32 tl_top_bit64(u64 v) {
+	unsigned long r;
+	if (!_BitScanReverse64(&r, v))
+		return -1;
+	return r;
+}
+# define TL_HAS_TOP_BIT64 1
+#endif
 
 #else // if !TL_MSVCPP
 
@@ -79,8 +89,14 @@ TL_INLINE u32 tl_byteswap32(u32 x) { return (x << 24) | (x >> 24) | ((x >> 8) & 
 #endif // elseif !TL_MSVCPP
 
 #ifndef TL_HAS_FLS64
-TL_INLINE int tl_fls64(u64 x) {
-	return (x>>32) ? 32 + (int32_t)tl_fls((u32)(x>>32)) : (int32_t)tl_fls((u32)x);
+TL_INLINE i32 tl_fls64(u64 x) {
+	return (x>>32) ? 32 + (i32)tl_fls((u32)(x>>32)) : (i32)tl_fls((u32)x);
+}
+#endif
+
+#ifndef TL_HAS_TOP_BIT64
+TL_INLINE i32 tl_top_bit64(u64 x) {
+	return (x >> 32) ? 32 + (i32)tl_top_bit((u32)(x >> 32)) : (i32)tl_top_bit((u32)x);
 }
 #endif
 

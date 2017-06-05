@@ -330,7 +330,7 @@ struct FixedBufferPullable : Pullable {
 	}
 
 	~FixedBufferPullable() {
-		memfree(this->buffer);
+		free(this->buffer);
 	}
 
 	// Returns unused space left at the end of the buffer
@@ -367,12 +367,12 @@ struct FixedBufferPushable : Pushable {
 	static usize const BufferSize = 4096;
 
 	FixedBufferPushable()
-		: buffer((u8 *)memalloc(BufferSize))
+		: buffer((u8 *)malloc(BufferSize))
 		, buffer_size(BufferSize) {
 	}
 
 	~FixedBufferPushable() {
-		memfree(this->buffer);
+		free(this->buffer);
 	}
 
 	u8* buffer;

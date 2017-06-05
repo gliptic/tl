@@ -63,6 +63,43 @@ VectorD2 sincos(double x) {
 	}
 }
 
+VectorD2 sincos_che(double x) {
+	double c = 1.57079632679489661923 - x;
+
+	double coeffs[] = {
+		-0.101321183346709072589001712988183609230944236760490476,          // x
+		 0.00662087952180793343258682906697112938547424931632185616,        // x^3
+		-0.000173505057912483501491115906801116298084629719204655552,       // x^5
+		 2.52229235749396866288379170129828403876289663605034418e-6,     // x^7
+		-2.33177897192836082466066115718536782354224647348350113e-8,   // x^9
+		 1.32913446369766718120324917415992976452154154051525892e-10, // x^11
+	};
+
+	//auto const pi_major = 3.1415927;
+	//auto const pi_minor = -0.00000008742278;
+	auto const pi = 3.1415926535897932384626433832795;
+
+	auto x2 = x*x;
+	auto c2 = c*c;
+	auto p11 = coeffs[5];
+	auto p9 = p11*x2 + coeffs[4];
+	auto cp9 = p11*c2 + coeffs[4];
+	auto p7 = p9*x2 + coeffs[3];
+	auto cp7 = p9*c2 + coeffs[3];
+	auto p5 = p7*x2 + coeffs[2];
+	auto cp5 = p7*c2 + coeffs[2];
+	auto p3 = p5*x2 + coeffs[1];
+	auto cp3 = p5*c2 + coeffs[1];
+	auto p1 = p3*x2 + coeffs[0];
+	auto cp1 = p3*c2 + coeffs[0];
+	//auto sin = (x - pi_major - pi_minor) * (x + pi_major + pi_minor) * p1 * x;
+	//auto cos = (c - pi_major - pi_minor) * (c + pi_major + pi_minor) * cp1 * c;
+	auto sin = (x - pi) * (x + pi) * p1 * x;
+	auto cos = (c - pi) * (c + pi) * cp1 * c;
+
+	return VectorD2(cos, sin);
+}
+
 #if 1 // TL_MSVCPP
 
 alignas(16) u8 abs_mask[] = {

@@ -1,5 +1,6 @@
 #include "../io/stream.hpp"
 #include "win.hpp"
+//#include "miniwindows.h"
 
 namespace tl {
 
@@ -47,7 +48,7 @@ struct FilePullableMappingWin : EofPullable {
 };
 
 static Source open_mapping(char const* path) {
-	HANDLE h = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE h = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	HANDLE fm = INVALID_HANDLE_VALUE;
 	void* p = NULL;
 	tl::VecSlice<u8 const> sl;
@@ -57,7 +58,7 @@ static Source open_mapping(char const* path) {
 		return Source();
 	}
 
-	fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0, 0, NULL);
+	fm = CreateFileMappingA(h, NULL, PAGE_READONLY, 0, 0, NULL);
 
 	if (fm == INVALID_HANDLE_VALUE) {
 		printf("%s: %d\n", path, GetLastError());
@@ -83,7 +84,7 @@ static Source open_mapping(char const* path) {
 }
 
 static Source open(char const* path) {
-	HANDLE h = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE h = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (h == INVALID_HANDLE_VALUE) {
 		printf("%d\n", GetLastError());
@@ -92,7 +93,7 @@ static Source open(char const* path) {
 }
 
 FilePushable* FilePushable::open(char const* path) {
-	HANDLE h = CreateFile(path, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE h = CreateFileA(path, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (h == INVALID_HANDLE_VALUE) {
 		printf("%d\n", GetLastError());

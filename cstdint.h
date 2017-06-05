@@ -95,7 +95,9 @@ typedef ptrdiff_t intptr_t;
 
 #define TL_BITS_IN(t) (sizeof(t)*CHAR_BIT)
 
-#endif /* !TL_GCC */ 
+#endif /* !TL_GCC */
+
+// TODO: Use deterministic selection of these types
 
 typedef uint8_t   u8;
 typedef int8_t    i8;

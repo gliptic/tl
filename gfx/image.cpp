@@ -213,7 +213,7 @@ int Image::pad(Image const& from) {
 }
 
 Image::Image(u32 w, u32 h, u32 bpp)
-	: ImageSlice((u8 *)memalloc(w * h * bpp), w, h, w * bpp, bpp) {
+	: ImageSlice((u8 *)malloc(w * h * bpp), w, h, w * bpp, bpp) {
 }
 
 void Image::alloc_uninit(u32 w, u32 h, u32 bpp_init) {

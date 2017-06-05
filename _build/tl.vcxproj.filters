@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\socket.c" />
     <ClCompile Include="..\fdlibm\e_rem_pio2.c">
       <Filter>fdlibm</Filter>
     </ClCompile>
@@ -199,13 +198,6 @@
     <ClCompile Include="..\codec\polar_model.c">
       <Filter>codec</Filter>
     </ClCompile>
-    <ClCompile Include="..\std.c" />
-    <ClCompile Include="..\windows\std.c">
-      <Filter>windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\windows\io.c">
-      <Filter>windows</Filter>
-    </ClCompile>
     <ClCompile Include="..\windows\runtime_vc.c">
       <Filter>windows</Filter>
     </ClCompile>
@@ -268,6 +260,22 @@
     <ClCompile Include="..\rectpack.cpp">
       <Filter>gfx</Filter>
     </ClCompile>
+    <ClCompile Include="..\socket.cpp" />
+    <ClCompile Include="..\crypto\tweetnacl.c">
+      <Filter>crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\windows\thread.cpp">
+      <Filter>windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\windows\std.cpp">
+      <Filter>windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\windows\io.cpp">
+      <Filter>windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\std.cpp" />
+    <ClCompile Include="..\region.cpp" />
+    <ClCompile Include="..\tree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\platform.h" />
@@ -275,8 +283,6 @@
     <ClInclude Include="..\coro.h" />
     <ClInclude Include="..\impl.h" />
     <ClInclude Include="..\config.h" />
-    <ClInclude Include="..\socket.h" />
-    <ClInclude Include="..\socket_sys.h" />
     <ClInclude Include="..\memory.h" />
     <ClInclude Include="..\ieee.h" />
     <ClInclude Include="..\fdlibm\fdlibm.h">
@@ -317,13 +323,9 @@
       <Filter>codec</Filter>
     </ClInclude>
     <ClInclude Include="..\std.h" />
-    <ClInclude Include="..\io.h" />
     <ClInclude Include="..\utf8.h" />
     <ClInclude Include="..\strscan.h" />
     <ClInclude Include="..\char.h" />
-    <ClInclude Include="..\windows\win.hpp">
-      <Filter>windows</Filter>
-    </ClInclude>
     <ClInclude Include="..\rect.hpp" />
     <ClInclude Include="..\string.hpp" />
     <ClInclude Include="..\approxmath\am.hpp">
@@ -391,6 +393,27 @@
     <ClInclude Include="..\rectpack.hpp">
       <Filter>gfx</Filter>
     </ClInclude>
+    <ClInclude Include="..\socket.hpp" />
+    <ClInclude Include="..\crypto\tweetnacl.h">
+      <Filter>crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\windows\miniwindows.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\socket_sys.hpp" />
+    <ClInclude Include="..\windows\std_inline.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\windows\win.hpp">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io.hpp" />
+    <ClInclude Include="..\io\async.hpp">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\thread.hpp" />
+    <ClInclude Include="..\result.hpp" />
+    <ClInclude Include="..\tree.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="fdlibm">
@@ -414,6 +437,9 @@
     <Filter Include="io">
       <UniqueIdentifier>{f2eed4c9-a657-4bc8-842d-35bea9ba7bc1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="crypto">
+      <UniqueIdentifier>{961530ba-352f-45d4-9975-e9922984d2ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\codec\polar_model.ppc">
@@ -421,11 +447,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="..\windows\allmul.asm">
-      <Filter>windows</Filter>
-    </MASM>
     <MASM Include="..\approxmath\sincos.asm">
       <Filter>approxmath</Filter>
+    </MASM>
+    <MASM Include="..\windows\llmul.asm">
+      <Filter>windows</Filter>
     </MASM>
   </ItemGroup>
 </Project>

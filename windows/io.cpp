@@ -1,14 +1,15 @@
-#include "../io.h"
+#include "../io.hpp"
 #include "../std.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <mmsystem.h>
+//#include "miniwindows.h"
+#include "win.hpp"
+
+namespace tl {
 
 void sprint(char const* s) {
 	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD dummy;
-	WriteConsole(
+	WriteConsoleA(
 		h,
 		s,
 		(DWORD)strlen(s),
@@ -47,6 +48,8 @@ void iprint(int32_t v) {
 void fprint(double v) {
 	char buf[64];
 
-	wsprintf(buf, "%f", v);
+	wsprintfA(buf, "%f", v);
 	sprint(buf);
+}
+
 }

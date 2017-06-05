@@ -98,8 +98,8 @@ struct FsNodeHrc : FsNodeImp {
 	}
 };
 
-static bool file_exists(LPCTSTR path) {
-	DWORD attrib = GetFileAttributes(path);
+static bool file_exists(LPCSTR path) {
+	DWORD attrib = GetFileAttributesA(path);
 
 	return attrib != INVALID_FILE_ATTRIBUTES
 		&& !(attrib & FILE_ATTRIBUTE_DIRECTORY);

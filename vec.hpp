@@ -96,6 +96,10 @@ struct VecSlice : protected VecSliceAbstract {
 
 	usize size() const { return this->end() - this->begin(); }
 
+	void unsafe_set_size(usize amount) {
+		this->unsafe_set_size_bytes(amount * sizeof(T));
+	}
+
 	void unsafe_cut_front(usize amount) {
 		this->unsafe_cut_front_bytes(amount * sizeof(T));
 	}
@@ -124,7 +128,9 @@ struct VecSlice : protected VecSliceAbstract {
 	}
 };
 
-#if 1
+struct AlwaysTrue {
+	operator bool() { return true; }
+};
 
 #pragma region VecAbstract
 struct VecAbstract : protected VecSliceAbstract {
@@ -153,8 +159,8 @@ struct VecAbstract : protected VecSliceAbstract {
 
 	u8* cap_end_bytes() { return this->c; }
 	
-	void reserve_bytes(usize amount);
-	TL_NEVER_INLINE void enlarge(usize extra);
+	AlwaysTrue reserve_bytes(usize amount);
+	TL_NEVER_INLINE AlwaysTrue enlarge(usize extra);
 
 	~VecAbstract() {
 		// TODO: VC++ doesn't know that it doesn't have to
@@ -165,80 +171,13 @@ struct VecAbstract : protected VecSliceAbstract {
 			free(this->begin_bytes());
 	}
 };
-
 #pragma endregion
-#else
-
-#pragma region VecAbstract
-struct VecAbstract {
-
-	u8 *b;
-	u8 *c;
-	usize unused;
-
-	VecAbstract() : b(0), c(0), unused(0) {}
-
-	VecAbstract(VecAbstract&& other)
-		: b(other.b), c(other.c), unused(other.unused) {
-		other.b = 0;
-		other.c = 0;
-		other.unused = 0;
-	}
-
-	VecAbstract& operator=(VecAbstract&& other) {
-		this->b = other.b;
-		this->c = other.c;
-		this->unused = other.unused;
-		other.b = 0;
-		other.c = 0;
-		other.unused = 0;
-		return *this;
-	}
-
-	template<typename T>
-	VecSlice<T> slice() const {
-		return VecSlice<T>((T *)this->b, (T *)(this->c - this->unused));
-	}
-
-	usize size_bytes() const { return this->c - this->b - this->unused; }
-
-	u8* begin_bytes() const { return this->b; }
-	u8* end_bytes() const { return this->c - this->unused; }
-	u8* cap_end_bytes() const { return this->c; }
-	bool empty() const { return size_bytes() == 0; }
-
-	void unsafe_set_size_bytes(usize new_size) {
-		this->unused = this->c - this->b - new_size;
-	}
-
-	u8* unsafe_inc_size_bytes(usize amount) {
-		u8* old_e = this->c - this->unused;
-		this->unused += amount;
-		return old_e;
-	}
-
-	void unsafe_cut_front_bytes(usize amount) {
-		this->b += amount;
-	}
-
-	void unsafe_cut_back_bytes(usize amount) {
-		this->unused += amount;
-	}
-
-	void reserve_bytes(usize amount);
-	TL_NEVER_INLINE void enlarge(usize extra);
-
-	~VecAbstract() { free(this->begin_bytes()); }
-};
-
-#pragma endregion
-#endif
 
 #pragma region VecInlineAbstract
 template<usize InlineSize = 128>
 struct VecInlineAbstract : protected VecSliceAbstract {
 	u8 *c;
-	u8 inline_buffer[InlineSize];
+	u8 inline_buffer[InlineSize]; // TODO: Align buffer. Currently aligned to pointer size.
 
 	VecInlineAbstract()
 		: VecSliceAbstract(inline_buffer, inline_buffer)
@@ -257,8 +196,8 @@ struct VecInlineAbstract : protected VecSliceAbstract {
 
 	u8* cap_end_bytes() { return this->c; }
 
-	TL_NEVER_INLINE void enlarge(usize extra);
-	void reserve_bytes(usize new_cap);
+	TL_NEVER_INLINE AlwaysTrue enlarge(usize extra);
+	AlwaysTrue reserve_bytes(usize new_cap);
 
 	~VecInlineAbstract() {
 		u8* beg = this->begin_bytes();
@@ -268,21 +207,22 @@ struct VecInlineAbstract : protected VecSliceAbstract {
 };
 
 template<usize InlineSize>
-void VecInlineAbstract<InlineSize>::enlarge(usize extra) {
+AlwaysTrue VecInlineAbstract<InlineSize>::enlarge(usize extra) {
 	usize size = this->size_bytes();
 	usize new_cap = 2 * size + extra;
 
 	this->reserve_bytes(new_cap);
+	return AlwaysTrue();
 }
 
 template<usize InlineSize>
-void VecInlineAbstract<InlineSize>::reserve_bytes(usize new_cap) {
+AlwaysTrue VecInlineAbstract<InlineSize>::reserve_bytes(usize new_cap) {
 
 	u8* old_b = this->begin_bytes();
 	u8* cur_b = old_b;
 
 	if (new_cap <= usize(c - old_b))
-		return;
+		return AlwaysTrue();
 
 	u8* new_b;
 
@@ -302,7 +242,87 @@ void VecInlineAbstract<InlineSize>::reserve_bytes(usize new_cap) {
 
 	this->VecSliceAbstract::operator=(VecSliceAbstract(new_b, new_b + size));
 	c = new_b + new_cap;
+	return AlwaysTrue();
 }
+#pragma endregion
+
+#pragma region VecRefAbstract
+struct VecRefAbstract : protected VecSliceAbstract {
+
+	u8 *c;
+
+	VecRefAbstract() : c(0) {}
+
+	VecRefAbstract(VecRefAbstract&& other)
+		: VecSliceAbstract(move(other)), c(other.c) {
+		other.c = 0;
+	}
+
+	VecRefAbstract& operator=(VecRefAbstract&& other) {
+		VecSliceAbstract::operator=(move(other));
+		this->c = other.c;
+		other.c = 0;
+		return *this;
+	}
+
+	template<typename T>
+	VecSlice<T> slice() const {
+		VecSliceAbstract const& base = *this;
+		return static_cast<VecSlice<T> const&>(base);
+	}
+
+	u8* cap_end_bytes() { return this->c; }
+
+	bool enlarge(usize extra) { return false; }
+	bool reserve_bytes(usize new_cap) { return new_cap <= usize(this->cap_end_bytes() - this->begin_bytes()); }
+
+	~VecRefAbstract() {
+	}
+};
+#pragma endregion
+
+#pragma region VecInlineFixed
+template<usize FixedSize>
+struct VecFixedAbstract {
+	u8 *e;
+	u8 inline_buffer[FixedSize]; // TODO: Align buffer. Currently aligned to pointer size.
+
+	VecFixedAbstract()
+		: e(inline_buffer + FixedSize) {
+	}
+
+	// Not so simple to move fixed vecs
+	VecFixedAbstract(VecFixedAbstract&& other) = delete;
+	VecFixedAbstract& operator=(VecFixedAbstract&& other) = delete;
+
+	template<typename T>
+	VecSlice<T> slice() const {
+		return VecSlice<T>(this->inline_buffer, this->e);
+	}
+
+	void unsafe_cut_back_bytes(usize amount) {
+		this->e -= amount;
+	}
+
+	void unsafe_set_size_bytes(usize new_size) {
+		this->e = this->inline_buffer + new_size;
+	}
+
+	u8* end_bytes() const { return this->e; }
+	u8* begin_bytes() const { return this->inline_buffer; }
+
+	usize size_bytes() const { return this->e - this->inline_buffer; }
+	bool empty() const { return this->inline_buffer == this->e; }
+
+	u8* cap_end_bytes() { return this->inline_buffer + FixedSize; }
+
+	bool enlarge(usize extra) { return false; }
+	bool reserve_bytes(usize new_cap) { return new_cap <= usize(this->cap_end_bytes() - this->begin_bytes()); }
+
+	~VecFixedAbstract() {
+	}
+};
+
 #pragma endregion
 
 #pragma region Vec
@@ -378,9 +398,13 @@ struct Vec : Base {
 		: Vec(other.begin(), other.size()) {
 	}
 
+	void abort_if_false(bool f) {
+		if (!f) abort();
+	}
+
 	Vec(T const* src, usize len) {
 		usize len_in_bytes = len * sizeof(T);
-		this->reserve_bytes(len_in_bytes);
+		abort_if_false(this->reserve_bytes(len_in_bytes));
 		// TODO: Only do this if the copying is trivial
 		memcpy(this->begin(), src, len_in_bytes);
 		this->unsafe_inc_size_bytes(len_in_bytes);
@@ -388,7 +412,7 @@ struct Vec : Base {
 
 	Vec(usize len, T const& value) {
 		usize len_in_bytes = len * sizeof(T);
-		this->reserve_bytes(len_in_bytes);
+		abort_if_false(this->reserve_bytes(len_in_bytes));
 
 		auto* p = this->begin();
 		for (usize i = 0; i < len; ++i) {
@@ -399,7 +423,7 @@ struct Vec : Base {
 
 	Vec(usize capacity) {
 		usize capacity_in_bytes = capacity * sizeof(T);
-		this->reserve_bytes(capacity_in_bytes);
+		abort_if_false(this->reserve_bytes(capacity_in_bytes));
 	}
 
 	template<typename... Args>
@@ -414,14 +438,14 @@ struct Vec : Base {
 
 	void push_back(T const& v) {
 		if (this->cap_end_bytes() - this->end_bytes() < sizeof(v)) {
-			this->enlarge(sizeof(v));
+			abort_if_false(this->enlarge(sizeof(v)));
 		}
 		new (this->unsafe_inc_size_bytes(sizeof(v)), non_null()) T(v);
 	}
 
 	void push_back(T&& v) {
 		if (this->cap_end_bytes() - this->end_bytes() < sizeof(v)) {
-			this->enlarge(sizeof(v));
+			abort_if_false(this->enlarge(sizeof(v)));
 		}
 		new (this->unsafe_inc_size_bytes(sizeof(v)), non_null()) T(move(v));
 	}
@@ -430,7 +454,7 @@ struct Vec : Base {
 	// The unsafety is in that it's uninitialized. Rename it.
 	T* unsafe_alloc(usize count) {
 		if (usize(this->cap_end_bytes() - this->end_bytes()) < count * sizeof(T))
-			this->enlarge(count * sizeof(T));
+			abort_if_false(this->enlarge(count * sizeof(T)));
 
 		T* p = this->end();
 		this->unsafe_inc_size_bytes(count * sizeof(T));
@@ -458,7 +482,21 @@ struct Vec : Base {
 	T& back() { return end()[-1]; }
 
 	void reserve(usize new_cap) {
-		this->reserve_bytes(new_cap * sizeof(T));
+		abort_if_false(this->reserve_bytes(new_cap * sizeof(T)));
+	}
+
+	void remove_swap(T* ptr) {
+		assert(ptr >= this->begin() && ptr < this->end());
+
+		ptr->~T();
+		memmove(ptr, end() - 1, sizeof(T));
+		this->unsafe_cut_back(1);
+	}
+
+	void remove_swap(usize index) {
+		assert(index < this->size());
+		T* ptr = begin() + index;
+		this->remove_swap(ptr);
 	}
 
 	void clear() {
@@ -478,9 +516,13 @@ struct Vec : Base {
 		this->unsafe_set_size_bytes(new_size * sizeof(T));
 	}
 
+	void unsafe_cut_back(usize amount) {
+		this->unsafe_cut_back_bytes(amount * sizeof(T));
+	}
+
 	// TODO: This should destruct the popped value
 	void unsafe_pop() {
-		this->unsafe_cut_back_bytes(1);
+		this->unsafe_cut_back(1);
 	}
 
 	~Vec() {
@@ -498,6 +540,12 @@ private:
 };
 #pragma endregion
 
+template<typename T, usize FixedSize>
+using VecFixed = Vec<T, VecFixedAbstract<FixedSize * sizeof(T)>>;
+
+template<typename T>
+using VecRef = Vec<T, VecRefAbstract>;
+
 template<typename T, usize InlineSize = 128>
 using VecSmall = Vec<T, VecInlineAbstract<InlineSize>>;
 
@@ -513,8 +561,6 @@ struct BufferMixed : Vec<u8> {
 		u8* p = unsafe_alloc(sizeof(U));
 		new (p, non_null()) U(v);
 	}
-
-
 };
 
 }

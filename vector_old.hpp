@@ -84,7 +84,7 @@ struct memalloc_allocator {
 
 	template<typename T>
 	void* alloc_slice(T& slice, usize cap_in_bytes) {
-		return memalloc(cap_in_bytes);
+		return malloc(cap_in_bytes);
 	}
 
 	template<typename T>
@@ -95,7 +95,7 @@ struct memalloc_allocator {
 
 		if (new_cap_in_bytes < size_bytes
 		 || !(new_b = memrealloc(slice.b, new_cap_in_bytes, old_cap_in_bytes))) {
-			memfree(slice.b);
+			free(slice.b);
 			new_b = 0;
 		}
 
@@ -104,7 +104,7 @@ struct memalloc_allocator {
 
 	template<typename T>
 	void free_slice(T& slice) {
-		memfree(slice.b);
+		free(slice.b);
 	}
 };
 

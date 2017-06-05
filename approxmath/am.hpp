@@ -13,6 +13,8 @@ VectorI2 sincos_fixed(i32 x);
 VectorI2 sincos_fixed2(i32 x);
 VectorD2 sincos_f64(i32 x);
 
+VectorD2 sincos_che(double x);
+
 }
 
 #endif // TL_APPROXMATH_HPP

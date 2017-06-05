@@ -262,4 +262,19 @@
 
 #endif
 
+#if TL_WINDOWS
+# define TL_STDCALL __stdcall
+# define TL_CCALL __cdecl
+#else
+# define TL_STDCALL
+#endif
+
+#if TL_CPP
+#define TL_BEGIN_C extern "C" {
+#define TL_END_C }
+#else
+#define TL_BEGIN_C
+#define TL_END_C
+#endif
+
 #endif // UUID_728FDBF69FF04497D59A6F8E9506DF64
