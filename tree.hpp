@@ -75,6 +75,10 @@ struct TreeNode : protected TreeNodeBase {
 	struct ChildRange {
 		TreeNodeBase** prev_next;
 
+		ChildRange()
+			: prev_next(0) {
+		}
+
 		ChildRange(TreeNode& node_init)
 			: prev_next(&node_init.left_child) {
 		}
@@ -98,12 +102,18 @@ struct TreeNode : protected TreeNodeBase {
 		}
 
 		void link_sibling_after(DerivedT* child) {
-			child->prev_next = prev_next;
-			child->right_sibling = *prev_next;
-			*prev_next = child;
-			prev_next = &child->right_sibling;
+			child->prev_next = this->prev_next;
+			child->right_sibling = *this->prev_next;
+			child->right_sibling->prev_next = &child->right_sibling;
+			*this->prev_next = child;
+
+			this->prev_next = &child->right_sibling;
 		}
 	};
+
+	bool has_children() const {
+		return this->left_child != &TreeNodeBase::null;
+	}
 
 	ChildRange children() {
 		return ChildRange(*this);

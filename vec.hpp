@@ -273,7 +273,7 @@ struct VecRefAbstract : protected VecSliceAbstract {
 
 	u8* cap_end_bytes() { return this->c; }
 
-	bool enlarge(usize extra) { return false; }
+	bool enlarge(usize /*extra*/) { return false; }
 	bool reserve_bytes(usize new_cap) { return new_cap <= usize(this->cap_end_bytes() - this->begin_bytes()); }
 
 	~VecRefAbstract() {
@@ -523,6 +523,12 @@ struct Vec : Base {
 	// TODO: This should destruct the popped value
 	void unsafe_pop() {
 		this->unsafe_cut_back(1);
+	}
+
+	void pop_back() {
+		T& b = back();
+		this->unsafe_cut_back(1);
+		b.~T();
 	}
 
 	~Vec() {
