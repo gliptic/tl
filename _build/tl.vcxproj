@@ -643,7 +643,7 @@
     <ProjectGuid>{7FC0A21B-7780-470B-960E-38294E4BA0AB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>tl</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

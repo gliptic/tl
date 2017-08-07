@@ -232,6 +232,12 @@ void Image::copy_from(Image const& other) {
 	memcpy(this->pixels, other.pixels, size);
 }
 
+void Image::clear() {
+	this->free();
+	this->dim = VectorU2(0, 0);
+	this->pixels = 0;
+}
+
 Image ImageSlice::convert(u32 bpp_new, tl::Palette* pal) {
 	Image ret(this->dim.x, this->dim.y, bpp_new);
 	ret.blit(*this, pal);
