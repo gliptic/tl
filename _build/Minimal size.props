@@ -51,7 +51,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <AdditionalOptions>/MERGE:.rdata=.text %(AdditionalOptions)</AdditionalOptions>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries>
+      </IgnoreAllDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

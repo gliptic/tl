@@ -22,6 +22,8 @@ TL_INLINE void* memrealloc(void* p, usize news, usize olds) {
 //TL_API void* memrealloc(void* p, size_t news, size_t olds);
 //TL_API void memfree(void* p);
 
+void tl_std_init();
+
 TL_API void panic();
 TL_API u64 tl_get_ticks();
 //TL_API void tl_crypto_rand(void* data, u32 amount);

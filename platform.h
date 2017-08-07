@@ -256,10 +256,6 @@
 # pragma warning(disable: 4204) // Non-constant initializers are standard in C99+
 # pragma warning(disable: 4127) // We want to use constants in conditionals, please
 # pragma warning(disable: 4577) // We don't care that noexcept can't be enforced, exceptions are turned off!
-
-// Turn off stdio.h silliness
-#define _NO_CRT_STDIO_INLINE 1
-
 #endif
 
 #if TL_WINDOWS

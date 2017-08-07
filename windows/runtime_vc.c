@@ -52,8 +52,6 @@ extern int * _IMP___COMMODE;    /* these names are implementation-specific */
 # define _dowildcard (0)
 #endif
 
-void tl_std_init();
-
 void __declspec(noinline) mainCRTStartup(void) {
 
 	//*_IMP___FMODE = _fmode;
