@@ -902,6 +902,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseSmallRuntime|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\runtime.h" />
+    <ClInclude Include="..\script.hpp" />
     <ClInclude Include="..\shared_ptr.hpp" />
     <ClInclude Include="..\socket.hpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>

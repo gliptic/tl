@@ -4,6 +4,7 @@
 #include "../string.hpp"
 #include "../shared_ptr.hpp"
 #include "stream.hpp"
+#include <sys/stat.h>
 
 #if TL_WINDOWS
 #include <io.h>
@@ -77,6 +78,14 @@ struct FsNodeFilesystem : FsNodeImp {
 		return Sink::from_file(path.slice_const());
 	}
 };
+
+#if TL_WINDOWS
+typedef struct _stati64 FileStat;
+typedef __time64_t FileTimestamp;
+inline int stat(char const* path, FileStat& stat) { return _stati64(path, &stat); }
+#else
+# error "Not implemented"
+#endif
 
 /*
 FsNode::FsNode(String&& path_init)
