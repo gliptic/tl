@@ -9,23 +9,31 @@ namespace tl {
 typedef Vec<u8> String;
 typedef VecSlice<u8 const> StringSlice;
 
-/* TODO
 struct StringSliceTerminated : StringSlice {
 	using StringSlice::StringSlice;
-};
-*/
 
-struct StringSliceLiteral : StringSlice {
-	using StringSlice::StringSlice;
+	char const* c_str() const { return (char const *)this->begin();  }
 };
 
-Vec<char> c_str(StringSlice str);
-StringSlice from_c_str(char const* str);
+struct StringSliceLiteral : StringSliceTerminated {
+	using StringSliceTerminated::StringSliceTerminated;
+};
+
+struct StringTerminated : Vec<char> {
+	using Vec::Vec;
+
+	operator char const*() const {
+		return (char const *)this->begin();
+	}
+};
+
+StringTerminated c_str(StringSlice str);
+StringSliceTerminated from_c_str(char const* str);
 
 }
 
 inline tl::StringSliceLiteral operator"" _S(char const* p, usize len) {
-	return tl::StringSliceLiteral((u8 const*)p, (u8 const*)p + len);
+	return tl::StringSliceLiteral((u8 const *)p, (u8 const *)p + len);
 }
 
 #endif // TL_STRING_HPP

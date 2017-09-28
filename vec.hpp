@@ -8,6 +8,7 @@
 
 #include "cstdint.h"
 #include "platform.h"
+#include <initializer_list>
 
 using std::move;
 
@@ -397,6 +398,15 @@ struct Vec : Base {
 	Vec(VecSlice<T const> other)
 		: Vec(other.begin(), other.size()) {
 	}
+
+	/* TODO: Can't move out of initializer_list, any way to solve that?
+	Vec(std::initializer_list<T> other) {
+		this->reserve(other.size());
+		for (usize i = 0; i < other.size(); ++i) {
+			this->push_back(move(other.begin()[i]));
+		}
+	}
+	*/
 
 	void abort_if_false(bool f) {
 		if (!f) abort();

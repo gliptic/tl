@@ -110,6 +110,42 @@ TL_INLINE uint16_t tl_read_be16(uint8_t const* p) { return p[1] + ((uint16_t)p[0
 
 namespace tl {
 
+template<typename T>
+struct Unaligned {
+	Unaligned() {
+
+	}
+
+	explicit Unaligned(T v_init) {
+		this->set(v_init);
+	}
+
+	void set(T v_new) {
+#if TL_UNALIGNED_ACCESS
+		this->v = v_new;
+#else
+		memcpy(&v, &v_new, sizeof(T));
+#endif
+	}
+
+	T get() const {
+#if TL_UNALIGNED_ACCESS
+		return v;
+#else
+		T r;
+		memcpy(&r, &v, sizeof(T));
+		return r;
+#endif
+	}
+
+	T& raw() {
+		return this->v;
+	}
+
+private:
+	T v;
+};
+
 inline u8 read_le(u8 const& r) { return r; }
 inline u8 read_be(u8 const& r) { return r; }
 

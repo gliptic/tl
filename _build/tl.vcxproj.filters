@@ -415,6 +415,7 @@
     <ClInclude Include="..\result.hpp" />
     <ClInclude Include="..\tree.hpp" />
     <ClInclude Include="..\hash_map.hpp" />
+    <ClInclude Include="..\script.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="fdlibm">
