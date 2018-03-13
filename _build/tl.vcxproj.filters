@@ -276,6 +276,9 @@
     <ClCompile Include="..\std.cpp" />
     <ClCompile Include="..\region.cpp" />
     <ClCompile Include="..\tree.cpp" />
+    <ClCompile Include="..\io\memo.cpp">
+      <Filter>io</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\platform.h" />
@@ -416,6 +419,9 @@
     <ClInclude Include="..\tree.hpp" />
     <ClInclude Include="..\hash_map.hpp" />
     <ClInclude Include="..\script.hpp" />
+    <ClInclude Include="..\io\memo.hpp">
+      <Filter>io</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="fdlibm">

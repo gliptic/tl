@@ -39,6 +39,27 @@ struct Allocator {
 	virtual void* alloc_fallback(usize rounded_size) = 0;
 };
 
+/*
+template<usize Size>
+struct FixedSizeAllocator {
+	u8 *cur, *end;
+
+	static usize const RoundedSize = TL_ALIGN_SIZE(Size, TL_REGION_MAX_ALIGN);
+
+	void* alloc() {
+		if (usize(this->end - this->cur) >= RoundedSize) {
+			void* ret = this->cur;
+			this->cur += RoundedSize;
+			return ret;
+		}
+
+		return this->alloc_fallback(rounded_size);
+	}
+
+	virtual void* alloc_fallback() = 0;
+};
+*/
+
 struct Region : Allocator {
 	static usize const PageSize = 4096;
 
@@ -103,6 +124,26 @@ struct FreelistDelete {
 	}
 
 	void** ptrToTop;
+};
+
+template<typename T>
+struct PooledRegion : Region {
+	static usize const RoundedSize = TL_ALIGN_SIZE(sizeof(T), TL_REGION_MAX_ALIGN);
+	Freelist<RoundedSize> freelist;
+
+	void* alloc() {
+		return this->alloc(RoundedSize);
+	}
+
+	T* alloc_from_pool() {
+		void* p = this->freelist.try_alloc();
+		if (p) return (T *)p;
+		return this->alloc();
+	}
+
+	void free_to_pool(T* p) {
+		this->freelist.free(p);
+	}
 };
 
 }
