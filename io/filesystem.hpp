@@ -86,8 +86,7 @@ typedef __time64_t FileTimestamp;
 inline int stat(char const* path, FileStat& stat) { return _stati64(path, &stat); }
 
 inline String exec_path() {
-	String str;
-	str.reserve(1024);
+	String str(1024);
 	win::DWORD written;
 	while (true) {
 		auto cap = win::DWORD(str.cap_end() - str.begin());
