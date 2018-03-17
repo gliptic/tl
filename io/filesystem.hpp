@@ -8,6 +8,7 @@
 
 #if TL_WINDOWS
 #include <io.h>
+#include "../windows/miniwindows.h"
 #else
 #include <unistd.h>
 #endif
@@ -83,6 +84,23 @@ struct FsNodeFilesystem : FsNodeImp {
 typedef struct _stati64 FileStat;
 typedef __time64_t FileTimestamp;
 inline int stat(char const* path, FileStat& stat) { return _stati64(path, &stat); }
+
+inline String exec_path() {
+	String str(1024);
+	win::DWORD written;
+	while (true) {
+		auto cap = win::DWORD(str.cap_end() - str.begin());
+		written = win::GetModuleFileNameA(NULL, (win::LPSTR)str.begin(), cap);
+		str.unsafe_set_size(written);
+		if (written != cap) {
+			break;
+		}
+		str.enlarge(0);
+	}
+	
+	return move(str);
+}
+
 #else
 # error "Not implemented"
 #endif

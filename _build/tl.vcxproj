@@ -659,6 +659,7 @@
     </ClCompile>
     <ClCompile Include="..\io\archive.cpp" />
     <ClCompile Include="..\io\filesystem.cpp" />
+    <ClCompile Include="..\io\memo.cpp" />
     <ClCompile Include="..\io\stream.cpp" />
     <ClCompile Include="..\pairing_heap.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -832,6 +833,7 @@
     <ClInclude Include="..\io\archive.hpp" />
     <ClInclude Include="..\io\async.hpp" />
     <ClInclude Include="..\io\filesystem.hpp" />
+    <ClInclude Include="..\io\memo.hpp" />
     <ClInclude Include="..\io\stream.hpp" />
     <ClInclude Include="..\list.h" />
     <ClInclude Include="..\memory.h" />

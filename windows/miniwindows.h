@@ -421,6 +421,15 @@ enum : DWORD {
 //FILE_INVALID_FILE_ID               ((LONGLONG)-1LL) 
 
 WINBASEAPI
+DWORD
+WINAPI
+GetModuleFileNameA(
+	HMODULE hModule,
+	LPSTR lpFilename,
+	DWORD nSize
+);
+
+WINBASEAPI
 HANDLE
 WINAPI
 GetStdHandle(

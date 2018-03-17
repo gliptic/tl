@@ -19,7 +19,6 @@ struct HashSet {
 	template<typename K>
 	S remove(K const& key);
 
-	template<typename S>
 	bool insert(S&& key);
 
 	u32 hshift, keycount;
