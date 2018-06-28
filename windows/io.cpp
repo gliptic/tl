@@ -6,6 +6,17 @@
 
 namespace tl {
 
+void sprint(tl::StringSlice str) {
+	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD dummy;
+	WriteConsoleA(
+		h,
+		str.begin(),
+		(DWORD)str.size(),
+		&dummy,
+		NULL);
+}
+
 void sprint(char const* s) {
 	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD dummy;

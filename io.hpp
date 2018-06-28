@@ -4,8 +4,11 @@
 #include "config.h"
 #include "platform.h"
 #include "cstdint.h"
+#include "string.hpp"
 
 namespace tl {
+
+TL_API void sprint(tl::StringSlice str);
 
 TL_BEGIN_C
 

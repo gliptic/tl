@@ -101,6 +101,23 @@ struct TreeNode : protected TreeNodeBase {
 			return v;
 		}
 
+		void cut_rest() {
+			auto* old_prev_next = this->prev_next;
+
+			DerivedT* cur = 0;
+			while (this->has_more()) {
+				DerivedT* prev = cur;
+				cur = this->next();
+				delete prev;
+			}
+
+			delete cur;
+
+			*old_prev_next = &TreeNodeBase::null;
+		}
+
+		// Link a child in the beginning of the range.
+		// The range will start after the newly linked child afterwards.
 		void link_sibling_after(DerivedT* child) {
 			child->prev_next = this->prev_next;
 			child->right_sibling = *this->prev_next;

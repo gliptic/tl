@@ -5,6 +5,7 @@
 #include "../io.hpp"
 #include "../region.hpp"
 #include "../windows/miniwindows.h"
+#include "../socket.hpp"
 #include <string.h>
 #include <memory>
 using std::unique_ptr;
@@ -35,7 +36,7 @@ TL_ALIGN(8) struct PendingOperation {
 	*/
 };
 
-win::HANDLE to_win_handle(Handle h) {
+inline win::HANDLE to_win_handle(Handle h) {
 	return (tl::win::HANDLE)h.h;
 }
 
@@ -54,18 +55,8 @@ struct IocpRef {
 		win::CreateIoCompletionPort(to_win_handle(handle), this->h, (win::ULONG_PTR)handle.h, 0);
 	}
 
-#if 0
-	PendingOperation* wait(int timeout, uintptr_t& key, u32& transferred) {
-		LPOVERLAPPED overlapped;
-		return ::GetQueuedCompletionStatus(this->h, (DWORD *)&transferred, (ULONG_PTR *)&key, &overlapped, timeout)
-			? (PendingOperation *)overlapped
-			: NULL;
-	}
-#endif
-
 	void close() {
 		tl::win::CloseHandle((tl::win::HANDLE)this->h);
-		//CloseHandle(this->h);
 	}
 
 	static IocpRef create() {
@@ -82,6 +73,7 @@ struct IocpOp : win::OVERLAPPED {
 
 		Socket = (1 << 1),
 		Connectionless = (1 << 2) | Socket,
+		Accept = (1 << 3) | Socket,
 
 		RecvFrom = Read | Connectionless,
 		SendTo = Write | Connectionless,
@@ -94,10 +86,17 @@ struct IocpOp : win::OVERLAPPED {
 	Type type;
 };
 
+struct IocpAccept : IocpOp {
+	IocpAccept(Type type = Accept)
+		: IocpOp(type) {
+	}
+
+	InternetAddr from;
+};
 
 struct IocpRecvFromOp : IocpOp {
-	IocpRecvFromOp()
-		: IocpOp(RecvFrom), size(64 * 1024) {
+	IocpRecvFromOp(Type type = RecvFrom)
+		: IocpOp(type), size(64 * 1024) {
 	}
 
 	VecSlice<u8> slice() { return VecSlice<u8>(buffer, buffer + size); }
@@ -107,6 +106,27 @@ struct IocpRecvFromOp : IocpOp {
 	usize size;
 	u8 buffer[64 * 1024];
 };
+
+struct IocpAcceptOp : IocpOp {
+	IocpAcceptOp(tl::InternetAddr from)
+		: IocpOp(Accept), from(from) {
+	}
+
+	InternetAddr from;
+};
+
+/*
+struct IocpRecvOp : IocpOp {
+	IocpRecvOp()
+		: IocpOp(RecvFrom), size(64 * 1024) {
+	}
+
+	VecSlice<u8> slice() { return VecSlice<u8>(buffer, buffer + size); }
+	VecSlice<u8 const> slice_const() { return VecSlice<u8 const>(buffer, buffer + size); }
+
+	usize size;
+	u8 buffer[64 * 1024];
+};*/
 
 struct IocpSendToOp : IocpOp {
 	IocpSendToOp()
@@ -120,6 +140,17 @@ struct IocpSendToOp : IocpOp {
 	u8 buffer[64 * 1024];
 };
 
+struct IocpSendOp : IocpOp {
+	IocpSendOp(tl::Vec<u8> buf)
+		: IocpOp(Write), buf(move(buf)) {
+	}
+
+	VecSlice<u8> slice() { return buf.slice(); }
+	VecSlice<u8 const> slice_const() { return buf.slice_const(); }
+
+	tl::Vec<u8> buf;
+};
+
 struct Iocp;
 
 typedef unique_ptr<IocpOp, FreelistDelete> IocpOpPtr;
@@ -127,9 +158,14 @@ typedef unique_ptr<IocpRecvFromOp, FreelistDelete> IocpRecvFromOpPtr;
 typedef unique_ptr<IocpSendToOp, FreelistDelete> IocpSendToOpPtr;
 
 struct IocpEvent {
-	IocpEvent(bool is_read, Handle h, IocpOpPtr read_data, InternetAddr from)
+	IocpEvent(IocpOp::Type type, Handle h, IocpOpPtr read_data, InternetAddr from)
 		: h(h), op(move(read_data)),
-		from(from), is_read(is_read) {
+		from(from), type(type) {
+	}
+
+	IocpEvent(IocpOp::Type type, Handle h, IocpOpPtr data)
+		: h(h), op(move(data)),
+		from(), type(type) {
 	}
 
 	TL_NON_COPYABLE(IocpEvent);
@@ -142,7 +178,11 @@ struct IocpEvent {
 	IocpOpPtr op;
 
 	InternetAddr from;
-	bool is_read;
+	IocpOp::Type type;
+
+	bool is_read_() const {
+		return (this->type & IocpOp::Read) != 0;
+	}
 };
 
 struct Iocp : private IocpRef {
@@ -153,7 +193,9 @@ struct Iocp : private IocpRef {
 
 	tl::Region region;
 	tl::Freelist<sizeof(IocpRecvFromOp)> recvFromFree;
+	tl::Freelist<sizeof(IocpAcceptOp)> acceptFree;
 	tl::Freelist<sizeof(IocpSendToOp)> sendToFree;
+	tl::Freelist<sizeof(IocpSendOp)> sendFree;
 
 	Iocp() {
 	}
@@ -180,6 +222,16 @@ struct Iocp : private IocpRef {
 		return new (p) IocpRecvFromOp();
 	}
 
+	IocpRecvFromOp* new_recv_op() {
+		void* p = recvFromFree.try_alloc();
+		if (!p) p = region.alloc(sizeof(IocpRecvFromOp));
+		return new (p) IocpRecvFromOp(IocpOp::Read);
+	}
+
+	IocpAcceptOp* new_accept_op(tl::InternetAddr addr) {
+		return new IocpAcceptOp(addr);
+	}
+
 	void delete_recv_from_op(IocpRecvFromOp* p) {
 		p->~IocpRecvFromOp();
 		recvFromFree.free(p);
@@ -195,9 +247,24 @@ struct Iocp : private IocpRef {
 		return IocpSendToOpPtr(new_send_to_op(), FreelistDelete(sendToFree));
 	}
 
+	IocpSendOp* new_send_op(tl::Vec<u8> buf) {
+		void* p = sendFree.try_alloc();
+		if (!p) p = region.alloc(sizeof(IocpSendOp));
+		return new (p) IocpSendOp(move(buf));
+	}
+
 	void delete_send_to_op(IocpSendToOp* p) {
 		p->~IocpSendToOp();
 		sendToFree.free(p);
+	}
+
+	void delete_send_op(IocpSendOp* p) {
+		p->~IocpSendOp();
+		sendFree.free(p);
+	}
+
+	void delete_accept_op(IocpAcceptOp* p) {
+		delete p;
 	}
 
 	void schedule_recvfrom(Handle handle) {
@@ -210,6 +277,28 @@ struct Iocp : private IocpRef {
 		}
 	}
 
+	void schedule_recv(Handle handle) {
+		IocpRecvFromOp* new_op = new_recv_op();
+
+		int r = Socket((uintptr_t)handle.h).recv_async(new_op->slice(), new_op);
+		printf("r = %d\n", r);
+		if (r < 0) {
+			delete_recv_from_op(new_op);
+		}
+	}
+
+	/*
+	void schedule_accept(Handle handle) {
+		IocpRecvFromOp* new_op = new_recv_op();
+
+		int r = Socket((uintptr_t)handle.h).recv_async(new_op->slice(), new_op);
+		printf("r = %d\n", r);
+		if (r < 0) {
+			delete_recv_from_op(new_op);
+		}
+	}
+	*/
+
 	void sendto(Socket socket, IocpSendToOp* new_op, InternetAddr const& addr) {
 		auto slice = new_op->slice_const();
 
@@ -218,10 +307,38 @@ struct Iocp : private IocpRef {
 		}
 	}
 
-	void reg(Handle handle) {
+	bool send(Socket socket, IocpSendOp* new_op) {
+		auto slice = new_op->slice_const();
+
+		int err = socket.send_async(slice, new_op);
+		if (err < 0) {
+			delete_send_op(new_op);
+			return false;
+		}
+
+		return true;
+	}
+
+	bool post(Handle handle, IocpOp* op) {
+		return win::PostQueuedCompletionStatus(this->h, 0, handle.h, op) != 0;
+	}
+
+	void begin_recvfrom(Handle handle) {
 		this->reg_raw(handle);
 		schedule_recvfrom(handle);
 	}
+
+	void begin_recv(Handle handle) {
+		this->reg_raw(handle);
+		schedule_recv(handle);
+	}
+
+	/*
+	void begin_listen(Handle handle) {
+		this->reg_raw(handle);
+		schedule_accept(handle);
+	}
+	*/
 
 	bool wait(Vec<IocpEvent>& events, int timeout) {
 		tl::win::OVERLAPPED_ENTRY buf[64];
@@ -239,16 +356,39 @@ struct Iocp : private IocpRef {
 				IocpOp* op = (IocpOp *)entry.lpOverlapped;
 				Handle handle = Handle((usize)entry.lpCompletionKey);
 
+				// TODO: Better error detection/handling
+				if (entry.dwNumberOfBytesTransferred == 0 && op->type != IocpOp::Accept) {
+					// TODO: IocpOp still needs to be freed
+					continue;
+				}
+
 				if (op->type == IocpOp::RecvFrom) {
 					IocpRecvFromOp* recvFromOp = (IocpRecvFromOp *)op;
 					recvFromOp->size = entry.dwNumberOfBytesTransferred;
 
-					events.push_back(IocpEvent(true, handle, IocpOpPtr(recvFromOp, FreelistDelete(recvFromFree)), recvFromOp->from));
+					events.push_back(IocpEvent(op->type, handle, IocpOpPtr(recvFromOp, FreelistDelete(recvFromFree)), recvFromOp->from));
 					schedule_recvfrom(handle);
 				} else if (op->type == IocpOp::SendTo) {
 					// TODO
 
 					this->delete_send_to_op((IocpSendToOp *)op);
+				} else if (op->type == IocpOp::Read) {
+					IocpRecvFromOp* recvFromOp = (IocpRecvFromOp *)op;
+					recvFromOp->size = entry.dwNumberOfBytesTransferred;
+
+					events.push_back(IocpEvent(op->type, handle, IocpOpPtr(recvFromOp, FreelistDelete(recvFromFree)), recvFromOp->from));
+					schedule_recv(handle);
+				} else if (op->type == IocpOp::Write) {
+					IocpSendOp* sendOp = (IocpSendOp *)op;
+
+					events.push_back(IocpEvent(op->type, handle, IocpOpPtr(sendOp, FreelistDelete(sendFree))));
+
+					//this->delete_send_op((IocpSendOp *)op);
+				} else if (op->type == IocpOp::Accept) {
+					IocpAcceptOp* acceptOp = (IocpAcceptOp *)op;
+
+					events.push_back(IocpEvent(op->type, handle, IocpOpPtr(), acceptOp->from));
+					this->delete_accept_op(acceptOp);
 				} else {
 					// Not implemented
 					TL_UNREACHABLE();

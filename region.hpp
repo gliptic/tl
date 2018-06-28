@@ -114,6 +114,10 @@ struct Freelist : BasicFreelist {
 
 struct FreelistDelete {
 	
+	FreelistDelete()
+		: ptrToTop(0) {
+	}
+
 	FreelistDelete(BasicFreelist& freelist)
 		: ptrToTop(&freelist.top) {
 	}

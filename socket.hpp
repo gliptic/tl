@@ -24,7 +24,8 @@ struct Socket {
 		Failure = -1,
 		WouldBlock = -2,
 		ConnReset = -3,
-		Disconnected = -4
+		Disconnected = -4,
+		Pending = 1
 	};
 
 #if TL_WINDOWS
@@ -51,6 +52,7 @@ struct Socket {
 
 	bool valid() const;
 	void close();
+	void close_send();
 
 	void nonblocking(bool no_blocking);
 	bool nodelay(bool no_delay);
@@ -65,7 +67,10 @@ struct Socket {
 
 #if TL_WINDOWS
 	int sendto_async(tl::VecSlice<u8 const> data, InternetAddr const& addr, win::OVERLAPPED* op);
+	int send_async(tl::VecSlice<u8 const> data, win::OVERLAPPED* op);
 	int recvfrom_async(tl::VecSlice<u8> data, InternetAddr* addr, win::OVERLAPPED* op);
+	int recv_async(tl::VecSlice<u8> data, win::OVERLAPPED* op);
+	int accept_async(win::OVERLAPPED* op);
 #endif
 
 	Handle to_handle() {

@@ -8,7 +8,8 @@
 
 #if TL_WINDOWS
 #include <io.h>
-#include "../windows/miniwindows.h"
+// TODO: miniwindows conflicts with some users 
+//#include "../windows/miniwindows.h"
 #else
 #include <unistd.h>
 #endif
@@ -85,6 +86,7 @@ typedef struct _stati64 FileStat;
 typedef __time64_t FileTimestamp;
 inline int stat(char const* path, FileStat& stat) { return _stati64(path, &stat); }
 
+#if 0
 inline String exec_path() {
 	String str(1024);
 	win::DWORD written;
@@ -100,6 +102,7 @@ inline String exec_path() {
 	
 	return move(str);
 }
+#endif
 
 #else
 # error "Not implemented"

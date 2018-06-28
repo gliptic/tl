@@ -127,6 +127,71 @@ struct VecSlice : protected VecSliceAbstract {
 		this->unsafe_cut_front(sizeof(U));
 		return r;
 	}
+
+	template<typename DerivedT>
+	struct Iterator {
+		DerivedT& begin() { return *static_cast<DerivedT *>(this); }
+		DerivedT& end() { return *static_cast<DerivedT *>(this); }
+
+		bool operator!=(Iterator const&) const {
+			return static_cast<DerivedT const*>(this)->has_more();
+		}
+
+		DerivedT& operator++() {
+			auto *d = static_cast<DerivedT *>(this);
+			d->next();
+			return *d;
+		}
+	};
+
+	struct SplitIterator : Iterator<SplitIterator> {
+
+		T split_on;
+		T* b;
+		T* cur;
+		T* e;
+
+		SplitIterator(VecSlice<T> r, T split_on)
+			: split_on(split_on)
+			, e(r.end())
+			, cur(r.begin()) {
+			
+			this->b = this->cur;
+			while (this->cur != this->e && *this->cur != split_on) {
+				++this->cur;
+			}
+		}
+
+		void next() {
+			if (this->cur != this->e) {
+				++this->cur;
+			}
+			this->b = this->cur;
+			while (this->cur != this->e && *this->cur != split_on) {
+				++this->cur;
+			}
+		}
+
+		bool has_more() const {
+			return b != e;
+		}
+
+		VecSlice<T> operator*() {
+			return VecSlice<T>(this->b, this->cur);
+		}
+	};
+
+	SplitIterator split(T const& split_on) {
+		return SplitIterator(*this, split_on);
+	}
+
+	bool operator==(VecSlice<T> const& other) const {
+		return this->size_bytes() == other.size_bytes() && memcmp(this->begin_bytes(), other.begin_bytes(), this->size_bytes()) == 0;
+	}
+
+	bool operator!=(VecSlice<T> const& other) const {
+		return !operator==(other);
+	}
 };
 
 struct AlwaysTrue {
@@ -395,7 +460,7 @@ struct Vec : Base {
 	Vec(Vec&& other) = default;
 	Vec& operator=(Vec&& other) = default;
 
-	Vec(VecSlice<T const> other)
+	Vec(VecSlice<T const> other) // TODO: explicit?
 		: Vec(other.begin(), other.size()) {
 	}
 
@@ -446,6 +511,15 @@ struct Vec : Base {
 		return move(vec);
 	}
 
+	template<typename... Args>
+	void append(Args... args) {
+		usize extra_size = concat_size<T>(args...);
+
+		this->reserve(this->size() + extra_size);
+		concat_write<T>((T *)this->end(), args...);
+		this->unsafe_inc_size(extra_size);
+	}
+
 	void push_back(T const& v) {
 		if (this->cap_end_bytes() - this->end_bytes() < sizeof(v)) {
 			abort_if_false(this->enlarge(sizeof(v)));
@@ -488,6 +562,7 @@ struct Vec : Base {
 	T const* end() const { return this->slice_const().end(); }
 	T* cap_end() { return (T *)this->cap_end_bytes(); }
 	usize size() const { return this->slice_const().size(); }
+	usize capacity() const { return this->cap_end_bytes() - this->begin(); }
 
 	T& back() { return end()[-1]; }
 

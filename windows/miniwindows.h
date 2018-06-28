@@ -533,6 +533,16 @@ GetQueuedCompletionStatusEx(
 );
 
 WINBASEAPI
+BOOL
+WINAPI
+PostQueuedCompletionStatus(
+	HANDLE CompletionPort,
+	DWORD dwNumberOfBytesTransferred,
+	ULONG_PTR dwCompletionKey,
+	LPOVERLAPPED lpOverlapped
+);
+
+WINBASEAPI
 HANDLE
 WINAPI
 CreateIoCompletionPort(
@@ -987,6 +997,7 @@ typedef struct tagMSG {
 } MSG, *PMSG, *NPMSG, *LPMSG;
 
 WINGDIAPI PROC  WINAPI wglGetProcAddress(LPCSTR);
+WINGDIAPI HDC WINAPI wglGetCurrentDC(VOID);
 WINUSERAPI int WINAPI ReleaseDC(HWND hWnd, HDC hDC);
 WINUSERAPI BOOL WINAPI DestroyWindow(HWND hWnd);
 WINUSERAPI int WINAPI GetSystemMetrics(int nIndex);
@@ -1085,7 +1096,7 @@ WINGDIAPI BOOL  WINAPI wglDeleteContext(HGLRC);
 WINGDIAPI BOOL  WINAPI wglMakeCurrent(HDC, HGLRC);
 
 // TODO: Get rid of macro
-#define MAKEINTRESOURCEA(i) ((LPSTR)((ULONG_PTR)((WORD)(i))))
+#define MAKEINTRESOURCEA(i) ((tl::win::LPSTR)((tl::win::ULONG_PTR)((tl::win::WORD)(i))))
 
 WINUSERAPI
 LRESULT
@@ -1413,6 +1424,10 @@ int
 WSAAPI
 closesocket(SOCKET s);
 
+int PASCAL shutdown(
+	SOCKET s,
+	int how);
+
 WINSOCK_API_LINKAGE
 int
 WSAAPI
@@ -1496,6 +1511,32 @@ WSARecvFrom(
 WINSOCK_API_LINKAGE
 int
 WSAAPI
+WSARecv(
+	SOCKET                             s,
+	LPWSABUF                           lpBuffers,
+	DWORD                              dwBufferCount,
+	LPDWORD                            lpNumberOfBytesRecvd,
+	LPDWORD                            lpFlags,
+	LPWSAOVERLAPPED                    lpOverlapped,
+	LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
+);
+
+WINSOCK_API_LINKAGE
+int
+WSAAPI
+WSASend(
+	SOCKET                             s,
+	LPWSABUF                           lpBuffers,
+	DWORD                              dwBufferCount,
+	LPDWORD                            lpNumberOfBytesSent,
+	DWORD                              dwFlags,
+	LPWSAOVERLAPPED                    lpOverlapped,
+	LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
+);
+
+WINSOCK_API_LINKAGE
+int
+WSAAPI
 recvfrom(
 	SOCKET s,
 	char * buf,
@@ -1540,6 +1581,19 @@ sendto(
 	int flags,
 	const struct sockaddr * to,
 	int tolen
+);
+
+// Mswsock, windows 8!
+BOOL
+AcceptEx(
+	SOCKET sListenSocket,
+	SOCKET sAcceptSocket,
+	PVOID lpOutputBuffer,
+	DWORD dwReceiveDataLength,
+	DWORD dwLocalAddressLength,
+	DWORD dwRemoteAddressLength,
+	LPDWORD lpdwBytesReceived,
+	LPOVERLAPPED lpOverlapped
 );
 
 WINSOCK_API_LINKAGE

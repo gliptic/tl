@@ -45,6 +45,10 @@ void Socket::close() {
 	}
 }
 
+void Socket::close_send() {
+	win::shutdown(this->s, 1);
+}
+
 int const error_ret = win::SOCKET_ERROR;
 
 #else
@@ -296,7 +300,7 @@ static int translate_comm_result_async(int ret) {
 		{
 		case sckerr_conn_reset: return Socket::ConnReset;
 		case sckerr_would_block: return Socket::WouldBlock;
-		case win::ERROR_IO_PENDING: return 0;
+		case win::ERROR_IO_PENDING: return Socket::Pending;
 		default: return Socket::Failure;
 		}
 	}
@@ -376,6 +380,63 @@ int Socket::recvfrom_async(tl::VecSlice<u8> data, InternetAddr* addr, win::OVERL
 		NULL);
 
 	return translate_comm_result_async(ret);
+}
+
+int Socket::send_async(tl::VecSlice<u8 const> data, win::OVERLAPPED* op) {
+	win::WSABUF buffer = { data.size(), (win::CHAR *)data.begin() };
+
+	memset(op, 0, sizeof(win::OVERLAPPED));
+
+	int ret = win::WSASend(
+		this->s,
+		&buffer, 1,
+		NULL,
+		0,
+		(win::LPWSAOVERLAPPED)op,
+		NULL);
+
+	printf("WSASend() == %d\n", ret);
+
+	return translate_comm_result_async(ret);
+}
+
+int Socket::recv_async(tl::VecSlice<u8> data, win::OVERLAPPED* op) {
+	win::WSABUF buffer = { data.size(), (win::CHAR *)data.begin() };
+
+	memset(op, 0, sizeof(win::OVERLAPPED));
+
+	win::DWORD flags = 0;
+	socklen_t fromlen = sizeof(sockaddr);
+	int ret = win::WSARecv(
+		this->s,
+		&buffer, 1,
+		NULL,
+		&flags,
+		(win::LPWSAOVERLAPPED)op,
+		NULL);
+
+	return translate_comm_result_async(ret);
+}
+
+int Socket::accept_async(win::OVERLAPPED* op) {
+	//win::WSABUF buffer = { data.size(), (win::CHAR *)data.begin() };
+
+	memset(op, 0, sizeof(win::OVERLAPPED));
+	abort();
+
+	/*
+	auto ret = AcceptEx(
+			this->s,
+			sAcceptSocket,
+			NULL,
+			0,
+			dwLocalAddressLength,
+			dwRemoteAddressLength,
+			NULL,
+			(win::LPOVERLAPPED)op);
+	*/
+
+	return -1;
 }
 #endif
 

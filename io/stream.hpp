@@ -171,6 +171,18 @@ struct Source : SourceBuf {
 		return VecSlice<u8 const>(begin, begin + amount);
 	}
 
+	template<typename T>
+	T const* window() {
+		usize amount = sizeof(T);
+		if (ensure(amount)) {
+			return 0;
+		}
+
+		u8 const* begin = this->begin();
+		this->unsafe_skip(amount);
+		return (T const *)begin;
+	}
+
 	VecSlice<u8 const> read_all() {
 		for (;;) {
 			if (is_eof(src->pull(*this, 0)))
