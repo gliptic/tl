@@ -12,6 +12,13 @@ extern "C" {
 #pragma comment(linker, "/merge:.CRT=.rdata")
 #pragma section(".CRT$XIA",long,read)
 #pragma section(".CRT$XIZ",long,read)
+//
+#pragma section(".CRT$XLA",long,read)
+#pragma section(".CRT$XLZ",long,read)
+#pragma section(".rdata$T",long,read)
+#pragma section(".tls",long,read,write)
+#pragma section(".tls$AAA",long,read,write)
+#pragma section(".tls$ZZZ",long,read,write)
 
 typedef void(__cdecl *_PVFV)(void);
 typedef int(__cdecl *_PIFV)(void);
@@ -25,6 +32,25 @@ typedef struct {
 #define TL_CRTALLOC(x) __declspec(allocate(x))
 TL_CRTALLOC(".CRT$XIA") _PIFV __xi_a[] = { NULL };
 TL_CRTALLOC(".CRT$XIZ") _PIFV __xi_z[] = { NULL };
+
+ULONG _tls_index = 0;
+/* TLS raw template data start and end. */
+TL_CRTALLOC(".tls") char _tls_start = 0;
+TL_CRTALLOC(".tls$ZZZ") char _tls_end = 0;
+
+TL_CRTALLOC(".CRT$XLA") PIMAGE_TLS_CALLBACK __xl_a = 0;
+TL_CRTALLOC(".CRT$XLZ") PIMAGE_TLS_CALLBACK __xl_z = 0;
+
+TL_CRTALLOC(".rdata$T")
+const IMAGE_TLS_DIRECTORY _tls_used =
+{
+	(ULONG)(ULONG_PTR)&_tls_start, // start of tls data
+	(ULONG)(ULONG_PTR)&_tls_end,   // end of tls data
+	(ULONG)(ULONG_PTR)&_tls_index, // address of tls_index
+	(ULONG)(ULONG_PTR)(&__xl_a + 1), // pointer to callbacks
+	(ULONG)0,                      // size of tls zero fill
+	(ULONG)0                       // characteristics
+};
 
 char _fltused;
 
