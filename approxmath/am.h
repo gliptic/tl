@@ -3,6 +3,7 @@
 
 #include "../config.h"
 
+
 typedef struct am_pair { float first, second; } am_pair;
 
 #define AM_PI			(3.14159265358979323846)

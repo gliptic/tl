@@ -168,6 +168,7 @@ float am_sinf(float x)
 	return r;
 }*/
 
+#if 0
 float am_sinf_2(float x)
 {
 	float r;
@@ -181,6 +182,7 @@ float am_cosf(float x)
 	_mm_store_ss(&r, am_cos_ss(_mm_load_ss(&x)));
 	return r;
 }
+#endif
 
 #if TL_X86
 

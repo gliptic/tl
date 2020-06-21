@@ -3,6 +3,10 @@
 
 #include "../vector.hpp"
 
+extern "C" {
+#include "am.h"
+}
+
 namespace tl {
 
 static f64 const pi = 3.1415926535897932384626433832795;

@@ -565,6 +565,7 @@ struct Vec : Base {
 	usize capacity() const { return this->cap_end_bytes() - this->begin(); }
 
 	T& back() { return end()[-1]; }
+	T& front() { return begin()[0]; }
 
 	void reserve(usize new_cap) {
 		abort_if_false(this->reserve_bytes(new_cap * sizeof(T)));
@@ -611,9 +612,16 @@ struct Vec : Base {
 	}
 
 	void pop_back() {
-		T& b = back();
+		T& b_ = back();
 		this->unsafe_cut_back(1);
-		b.~T();
+		b_.~T();
+	}
+
+	void pop_front() {
+		T& f_ = front();
+		f_.~T();
+		memmove(begin(), begin() + 1, slice().size_bytes() - sizeof(T));
+		this->unsafe_cut_back(1);
 	}
 
 	~Vec() {

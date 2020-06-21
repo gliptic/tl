@@ -234,6 +234,12 @@ struct ImageSlice {
 		return *(u32 *)ptr(x, y, 4);
 	}
 
+	void set_pixel32(tl::VectorI2 ipos, u32 col) {
+		if (this->is_inside(ipos)) {
+			this->unsafe_pixel32(ipos.x, ipos.y) = col;
+		}
+	}
+
 	u32 width() const {
 		return this->dim.x;
 	}
